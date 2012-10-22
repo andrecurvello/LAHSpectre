@@ -24,6 +24,16 @@ import java.util.concurrent.Future;
  */
 public class SpectreGet {
 
+	public interface DownloadFileListener {
+
+		void notifyDownloadComplete();
+
+		void setProgress(int total_bytes_downloaded);
+
+		void setRemoteContentLength(int remote_file_length);
+
+	}
+
 	/**
 	 * Interface for object that receives notification from downloading service
 	 */
@@ -47,21 +57,53 @@ public class SpectreGet {
 			super(output_directory);
 		}
 	}
-	
-	public interface DownloadFileListener {
-
-		void notifyDownloadComplete();
-
-		void setProgress(int total_bytes_downloaded);
-
-		void setRemoteContentLength(int remote_file_length);
-
-	}
 
 	private static final int BUFFER_SIZE = 1024;
 
 	private static boolean DEBUG = true;
-	
+
+	/**
+	 * Prefix for a temporary file name
+	 */
+	private static final String TEMP_FILE_NAME = "temp.spectreget";
+
+	/**
+	 * Pick a valid file name for a temporary file in a directory.
+	 * 
+	 * @param directory
+	 *            The directory in which we want to create a new temp file,
+	 *            assuming to be an existing & readable directory
+	 * @return A name for a new file in output_directory, this file name is of
+	 *         the form {@link SpectreGet#TEMP_FILE_NAME} followed by a suffix
+	 *         of form "(<integer>)" such as (0), (1), ...
+	 */
+	private static String createNewTemporaryFileName(String directory) {
+		assert (directory != null);
+
+		File dir = new File(directory);
+		assert (dir.exists() && dir.canRead());
+
+		// List the files starting with {@link SpectreGet#TEMP_FILE_NAME}
+		String[] tmpfiles = dir.list(new FilenameFilter() {
+
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.startsWith(TEMP_FILE_NAME);
+			}
+		});
+
+		if (tmpfiles.length == 0)
+			return TEMP_FILE_NAME + "(0)";
+
+		// Select a new suffix
+		Arrays.sort(tmpfiles);
+		for (int i = 0;; i++) {
+			String fname = TEMP_FILE_NAME + "(" + i + ")";
+			if (Arrays.binarySearch(tmpfiles, fname) >= 0)
+				return fname;
+		}
+	}
+
 	/**
 	 * Download file considering whether it exists locally or not.
 	 * 
@@ -90,7 +132,8 @@ public class SpectreGet {
 		// Print out the download job summary
 		if (DEBUG) {
 			System.out.println("TeX.downloadFile : URI = " + uri);
-			System.out.println("TeX.downloadFile : Output location = " + output_directory);
+			System.out.println("TeX.downloadFile : Output location = "
+					+ output_directory);
 			System.out.println("TeX.downloadFile : Output file name = "
 					+ (output_file_name == null ? "<unspecified>"
 							: output_file_name));
@@ -102,7 +145,8 @@ public class SpectreGet {
 		File dir = new File(output_directory);
 		if (!dir.exists() && dir.mkdirs()) {
 			if (DEBUG)
-				System.out.println("TeX.downloadFile : Error - output directory cannot be created.");
+				System.out
+						.println("TeX.downloadFile : Error - output directory cannot be created.");
 			return null;
 		}
 
@@ -119,13 +163,14 @@ public class SpectreGet {
 			urlconn.connect();
 		} catch (IOException e) {
 			if (DEBUG)
-				System.out.println("TeX.downloadFile : Error - cannot open the connection.");
+				System.out
+						.println("TeX.downloadFile : Error - cannot open the connection.");
 			return null;
 		}
 
 		int remote_file_length = urlconn.getContentLength();
-		System.out.println("TeX.downloadFile : Remote file size = " + remote_file_length
-				+ " bytes.");
+		System.out.println("TeX.downloadFile : Remote file size = "
+				+ remote_file_length + " bytes.");
 
 		// Try to pick a name for output file
 		if (output_file_name == null) {
@@ -140,9 +185,10 @@ public class SpectreGet {
 						int e = params[i].length() - 1;
 						output_file_name = params[i].substring(s, e);
 						if (DEBUG) {
-							System.out.println("TeX.downloadFile : Remote file name = "
-									+ output_file_name
-									+ " (obtained from response header, select it as the output file name)");
+							System.out
+									.println("TeX.downloadFile : Remote file name = "
+											+ output_file_name
+											+ " (obtained from response header, select it as the output file name)");
 						}
 						break;
 					}
@@ -151,9 +197,10 @@ public class SpectreGet {
 			if (output_file_name == null) {
 				output_file_name = createNewTemporaryFileName(output_directory);
 				if (DEBUG)
-					System.out.println("TeX.downloadFile : Name for output file = "
-							+ output_file_name
-							+ " (File name not found from header. Create a temporary value.)");
+					System.out
+							.println("TeX.downloadFile : Name for output file = "
+									+ output_file_name
+									+ " (File name not found from header. Create a temporary value.)");
 			}
 		}
 
@@ -196,7 +243,8 @@ public class SpectreGet {
 					new FileOutputStream(output));
 		} catch (FileNotFoundException e) {
 			if (DEBUG)
-				System.out.println("TeX.downloadFile : File " + output + " does not exists");
+				System.out.println("TeX.downloadFile : File " + output
+						+ " does not exists");
 			e.printStackTrace();
 			return null;
 		}
@@ -212,15 +260,17 @@ public class SpectreGet {
 					break;
 			} catch (IOException e1) {
 				if (DEBUG)
-					System.out.println("TeX.downloadFile : Cannot read data from remote host.");
+					System.out
+							.println("TeX.downloadFile : Cannot read data from remote host.");
 				e1.printStackTrace();
 				// closeStream(download_file_output_stream);
 				try {
 					download_file_output_stream.close();
 				} catch (IOException e) {
 					if (DEBUG)
-						System.out.println("TeX.closeInputStream : Error closing input stream "
-								+ download_file_output_stream);
+						System.out
+								.println("TeX.closeInputStream : Error closing input stream "
+										+ download_file_output_stream);
 					e.printStackTrace();
 				}
 				return null;
@@ -231,16 +281,18 @@ public class SpectreGet {
 			// http://stackoverflow.com/questions/65035/in-java-does-return-trump-finally
 			if (Thread.currentThread().isInterrupted()) {
 				if (DEBUG)
-					System.out.println("TeX.downloadFile : Download is interrupted."
-							+ " Removing partial download file.");
+					System.out
+							.println("TeX.downloadFile : Download is interrupted."
+									+ " Removing partial download file.");
 				// closeStream(download_file_output_stream);
 				output.delete();
 				try {
 					download_file_output_stream.close();
 				} catch (IOException e) {
 					if (DEBUG)
-						System.out.println("TeX.closeInputStream : Error closing input stream "
-								+ download_file_output_stream);
+						System.out
+								.println("TeX.closeInputStream : Error closing input stream "
+										+ download_file_output_stream);
 					e.printStackTrace();
 				}
 				return null;
@@ -260,16 +312,18 @@ public class SpectreGet {
 					listener.setProgress(total_bytes_downloaded);
 			} catch (IOException e) {
 				if (DEBUG)
-					System.out.println("TeX.downloadFile : Cannot write data to file "
-							+ output);
+					System.out
+							.println("TeX.downloadFile : Cannot write data to file "
+									+ output);
 				// closeStream(download_file_output_stream);
 				e.printStackTrace();
 				try {
 					download_file_output_stream.close();
 				} catch (IOException e1) {
 					if (DEBUG)
-						System.out.println("TeX.closeInputStream : Error closing input stream "
-								+ download_file_output_stream);
+						System.out
+								.println("TeX.closeInputStream : Error closing input stream "
+										+ download_file_output_stream);
 					e1.printStackTrace();
 				}
 				return null;
@@ -283,7 +337,8 @@ public class SpectreGet {
 			download_file_output_stream.close();
 		} catch (IOException e) {
 			if (DEBUG)
-				System.out.println("TeX.downloadFile : Error closing file output stream!");
+				System.out
+						.println("TeX.downloadFile : Error closing file output stream!");
 			e.printStackTrace();
 		}
 
@@ -311,45 +366,18 @@ public class SpectreGet {
 	}
 
 	/**
-	 * Prefix for a temporary file name
-	 */
-	private static final String TEMP_FILE_NAME = "temp.spectreget";
-
-	/**
-	 * Pick a valid file name for a temporary file in a directory.
+	 * Get an {@link InputStream} to read information from a network resource
+	 * from the URI
 	 * 
-	 * @param directory
-	 *            The directory in which we want to create a new temp file,
-	 *            assuming to be an existing & readable directory
-	 * @return A name for a new file in output_directory, this file name is of
-	 *         the form {@link SpectreGet#TEMP_FILE_NAME} followed by a suffix
-	 *         of form "(<integer>)" such as (0), (1), ...
+	 * @param uri
+	 * @return
+	 * @throws IOException
 	 */
-	private static String createNewTemporaryFileName(String directory) {
-		assert (directory != null);
-
-		File dir = new File(directory);
-		assert (dir.exists() && dir.canRead());
-
-		// List the files starting with {@link SpectreGet#TEMP_FILE_NAME}
-		String[] tmpfiles = dir.list(new FilenameFilter() {
-
-			@Override
-			public boolean accept(File dir, String name) {
-				return name.startsWith(TEMP_FILE_NAME);
-			}
-		});
-
-		if (tmpfiles.length == 0)
-			return TEMP_FILE_NAME + "(0)";
-
-		// Select a new suffix
-		Arrays.sort(tmpfiles);
-		for (int i = 0;; i++) {
-			String fname = TEMP_FILE_NAME + "(" + i + ")";
-			if (Arrays.binarySearch(tmpfiles, fname) >= 0)
-				return fname;
-		}
+	public static InputStream streamFile(String uri) throws IOException {
+		URL url = new URL(uri);
+		URLConnection urlconn = url.openConnection();
+		urlconn.connect();
+		return urlconn.getInputStream();
 	}
 
 	private static void summarize(Listener listener, String uri,
