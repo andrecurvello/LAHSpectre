@@ -1,7 +1,8 @@
-package anhoavu.utils.spectreget;
+package anhoavu.utils.spectre;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -46,10 +47,268 @@ public class SpectreGet {
 			super(output_directory);
 		}
 	}
+	
+	public interface DownloadFileListener {
+
+		void notifyDownloadComplete();
+
+		void setProgress(int total_bytes_downloaded);
+
+		void setRemoteContentLength(int remote_file_length);
+
+	}
 
 	private static final int BUFFER_SIZE = 1024;
 
 	private static boolean DEBUG = true;
+	
+	/**
+	 * Download file considering whether it exists locally or not.
+	 * 
+	 * @param uri
+	 *            URI to download the file from
+	 * @param output_directory
+	 *            Path to the directory to write the file to
+	 * @param output_file_name
+	 *            Name of the file to write, {@literal null} to pick the file
+	 *            name that the server give or a temporary file name
+	 * @param force_overwrite
+	 *            Download and overwrite the file if it exists at the location
+	 * @return A {@link File} object representing the downloaded file or
+	 *         {@literal null} if it cannot be downloaded or written to the
+	 *         intended location
+	 * 
+	 * @throws IOException
+	 */
+	public static File downloadFile(DownloadFileListener listener, String uri,
+			String output_directory, String output_file_name,
+			boolean force_overwrite) {
+		// Note that only output stream needs to be closed properly.
+		// Input stream does not cause problem, after this method returns
+		// the data structure will be clean up.
+
+		// Print out the download job summary
+		if (DEBUG) {
+			System.out.println("TeX.downloadFile : URI = " + uri);
+			System.out.println("TeX.downloadFile : Output location = " + output_directory);
+			System.out.println("TeX.downloadFile : Output file name = "
+					+ (output_file_name == null ? "<unspecified>"
+							: output_file_name));
+			System.out.println("TeX.downloadFile : Force overwrite = "
+					+ (force_overwrite ? "yes" : "no"));
+		}
+
+		// Create the output directory if it does not exists
+		File dir = new File(output_directory);
+		if (!dir.exists() && dir.mkdirs()) {
+			if (DEBUG)
+				System.out.println("TeX.downloadFile : Error - output directory cannot be created.");
+			return null;
+		}
+
+		// Now download the file if
+		// we are forced to overwrite (force_overwrite = true); or
+		// the output file does not exists; or
+		// the output file exists but its length does not match the length
+		// specified by the server.
+		URL url;
+		URLConnection urlconn;
+		try {
+			url = new URL(uri);
+			urlconn = url.openConnection();
+			urlconn.connect();
+		} catch (IOException e) {
+			if (DEBUG)
+				System.out.println("TeX.downloadFile : Error - cannot open the connection.");
+			return null;
+		}
+
+		int remote_file_length = urlconn.getContentLength();
+		System.out.println("TeX.downloadFile : Remote file size = " + remote_file_length
+				+ " bytes.");
+
+		// Try to pick a name for output file
+		if (output_file_name == null) {
+			String disp = urlconn.getHeaderField("Content-Disposition");
+			if (disp != null) {
+				String[] params = disp.split(";");
+				for (int i = 0; i < params.length; i++) {
+					params[i] = params[i].trim();
+					// params[i] is of the form filename="...."
+					if (params[i].startsWith("filename=\"")) {
+						int s = "filename=\"".length();
+						int e = params[i].length() - 1;
+						output_file_name = params[i].substring(s, e);
+						if (DEBUG) {
+							System.out.println("TeX.downloadFile : Remote file name = "
+									+ output_file_name
+									+ " (obtained from response header, select it as the output file name)");
+						}
+						break;
+					}
+				}
+			}
+			if (output_file_name == null) {
+				output_file_name = createNewTemporaryFileName(output_directory);
+				if (DEBUG)
+					System.out.println("TeX.downloadFile : Name for output file = "
+							+ output_file_name
+							+ " (File name not found from header. Create a temporary value.)");
+			}
+		}
+
+		// Now we have a legitimate file name, make the output file
+		File output = new File(output_directory + File.separator
+				+ output_file_name);
+
+		// Negation of download condition
+		if (!force_overwrite && output.exists()
+				&& remote_file_length == output.length()) {
+			if (DEBUG)
+				System.out.println("TeX.downloadFile : File " + output
+						+ " already exists with matching content length"
+						+ " and I am not forced to redownload,"
+						+ " so I simply return it.");
+			return output;
+		}
+
+		if (listener != null)
+			listener.setRemoteContentLength(remote_file_length);
+
+		// Stream the remote file to local storage
+
+		// Open the stream to read from remote host
+		// This should not be closed as closing might block. Simply let the
+		// method returns and the resource is automatically cleaned up
+		InputStream remote_content_input_stream = null;
+		try {
+			remote_content_input_stream = urlconn.getInputStream();
+		} catch (IOException e) {
+			if (DEBUG)
+				System.out.println("TeX.downloadFile : Cannot stream " + uri);
+			e.printStackTrace();
+			return null;
+		}
+
+		OutputStream download_file_output_stream = null;
+		try {
+			download_file_output_stream = new BufferedOutputStream(
+					new FileOutputStream(output));
+		} catch (FileNotFoundException e) {
+			if (DEBUG)
+				System.out.println("TeX.downloadFile : File " + output + " does not exists");
+			e.printStackTrace();
+			return null;
+		}
+
+		byte[] buffer = new byte[1024];
+		int total_bytes_downloaded = 0;
+		int count;
+		do {
+			// Fetch 1KB from remote host to the buffer
+			try {
+				count = remote_content_input_stream.read(buffer);
+				if (count == -1)
+					break;
+			} catch (IOException e1) {
+				if (DEBUG)
+					System.out.println("TeX.downloadFile : Cannot read data from remote host.");
+				e1.printStackTrace();
+				// closeStream(download_file_output_stream);
+				try {
+					download_file_output_stream.close();
+				} catch (IOException e) {
+					if (DEBUG)
+						System.out.println("TeX.closeInputStream : Error closing input stream "
+								+ download_file_output_stream);
+					e.printStackTrace();
+				}
+				return null;
+			}
+
+			// Halt the download, delete partially downloaded file and
+			// return 'null' if we are interrupted
+			// http://stackoverflow.com/questions/65035/in-java-does-return-trump-finally
+			if (Thread.currentThread().isInterrupted()) {
+				if (DEBUG)
+					System.out.println("TeX.downloadFile : Download is interrupted."
+							+ " Removing partial download file.");
+				// closeStream(download_file_output_stream);
+				output.delete();
+				try {
+					download_file_output_stream.close();
+				} catch (IOException e) {
+					if (DEBUG)
+						System.out.println("TeX.closeInputStream : Error closing input stream "
+								+ download_file_output_stream);
+					e.printStackTrace();
+				}
+				return null;
+			}
+
+			// Write the data to the output stream
+			total_bytes_downloaded += count;
+			try {
+				download_file_output_stream.write(buffer, 0, count);
+				if (DEBUG)
+					System.out.println("TeX.downloadFile : "
+							+ total_bytes_downloaded
+							+ "\t/"
+							+ (remote_file_length == -1 ? "Unknown"
+									: remote_file_length));
+				if (listener != null)
+					listener.setProgress(total_bytes_downloaded);
+			} catch (IOException e) {
+				if (DEBUG)
+					System.out.println("TeX.downloadFile : Cannot write data to file "
+							+ output);
+				// closeStream(download_file_output_stream);
+				e.printStackTrace();
+				try {
+					download_file_output_stream.close();
+				} catch (IOException e1) {
+					if (DEBUG)
+						System.out.println("TeX.closeInputStream : Error closing input stream "
+								+ download_file_output_stream);
+					e1.printStackTrace();
+				}
+				return null;
+			}
+		} while (true);
+
+		if (DEBUG)
+			System.out.println("TeX.downloadFile : Download finishes!");
+
+		try {
+			download_file_output_stream.close();
+		} catch (IOException e) {
+			if (DEBUG)
+				System.out.println("TeX.downloadFile : Error closing file output stream!");
+			e.printStackTrace();
+		}
+
+		if (listener != null)
+			listener.notifyDownloadComplete();
+
+		return output;
+
+		// try {
+		//
+		//
+		//
+		// } catch (IOException e) {
+		// if (DEBUG) {
+		// System.out.println("TeX.downloadFile : File cannot be written or download is interrupted!");
+		// System.out.println("TeX.downloadFile : Delete the partially downloaded file.");
+		// }
+		// output.delete();
+		// e.printStackTrace();
+		// throw e;
+		// } finally {
+		// download_file_output_stream.close();
+		// remote_content_input_stream.close();
+		// }
+	}
 
 	/**
 	 * Prefix for a temporary file name
