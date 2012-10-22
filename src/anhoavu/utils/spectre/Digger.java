@@ -11,24 +11,101 @@ import org.kamranzafar.jtar.TarEntry;
 import org.kamranzafar.jtar.TarInputStream;
 import org.tukaani.xz.XZInputStream;
 
-public class Digger {
+/**
+ * This class serves as a universal {@link InputStream} for streams of
+ * compressed (a file containing compressed data) or archived (a file
+ * encapsulating a whole directory structure) input.
+ */
+public class Digger extends InputStream {
 
-	public static final int TAR = 0;
+	public static enum CompressFormat {
+		GZIP, XZ
+	}
 
-	public static final int XZ = 0;
+	/**
+	 * Interface for an archive entry which represents a file or directory when
+	 * it is unarchived.
+	 */
+	public interface Entry {
 
-	public static InputStream decompress(int format, File compressed_file)
-			throws IOException {
+		public String getName();
+
+		public boolean isDirectory();
+
+	}
+
+	/**
+	 * Interface for objects which relocates files within an archive
+	 */
+	public interface FileRelocator {
+
+		public String relocate(String file_path);
+
+	}
+
+	/**
+	 * Recognized format
+	 */
+	public enum Format {
+		BZIP2, GZIP, TAR, XZ, ZIP
+	}
+
+	/**
+	 * Simple {@link FileRelocator} that relocate files relative to a directory
+	 */
+	public class SingleRootFileRelocator implements FileRelocator {
+
+		private String root_directory;
+
+		public SingleRootFileRelocator(String root_directory) {
+			this.root_directory = root_directory;
+		}
+
+		public String relocate(String file_path) {
+			return root_directory + file_path;
+		}
+
+	}
+
+	/**
+	 * Get an {@link InputStream} to the decompressed content of a compressed
+	 * file represented by a {@link File} object.
+	 * 
+	 * @param format
+	 * @param compressed_file
+	 * @return
+	 * @throws IOException
+	 */
+	public static InputStream decompress(CompressFormat format,
+			File compressed_file) throws IOException {
 		return decompress(format, new FileInputStream(compressed_file));
 	}
 
-	public static InputStream decompress(int format, InputStream compressed_src)
-			throws IOException {
+	/**
+	 * Get an {@link InputStream} to the decompressed content of a compressed
+	 * stream
+	 * 
+	 * @param format
+	 * @param compressed_src
+	 * @return
+	 * @throws IOException
+	 */
+	public static InputStream decompress(CompressFormat format,
+			InputStream compressed_src) throws IOException {
 		return new XZInputStream(compressed_src);
 	}
 
-	public static InputStream decompress(int format, String compressed_file_path)
-			throws IOException {
+	/**
+	 * Get an {@link InputStream} to the decompressed content of a compressed
+	 * file given the {@link String} path to it.
+	 * 
+	 * @param format
+	 * @param compressed_file_path
+	 * @return
+	 * @throws IOException
+	 */
+	public static InputStream decompress(CompressFormat format,
+			String compressed_file_path) throws IOException {
 		return decompress(format, new File(compressed_file_path));
 	}
 
@@ -123,6 +200,115 @@ public class Digger {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * The compressed/archive format of this {@link Digger} object
+	 */
+	private Format format;
+
+	/**
+	 * The input stream that this archive binds to
+	 */
+	private InputStream input_stream;
+
+	public Digger(Format fmt, InputStream stream) {
+		format = fmt;
+		input_stream = stream;
+
+		// Make sure that the format matches the input streams
+		switch (format) {
+		case XZ:
+			assert (input_stream instanceof XZInputStream);
+		case TAR:
+			assert (input_stream instanceof TarInputStream);
+		default:
+			break;
+		}
+	}
+
+	public Entry getNextEntry() {
+		return null;
+	}
+
+	@Override
+	public int read() throws IOException {
+		return input_stream.read();
+	}
+
+	/**
+	 * Extract an archive stream to the file system
+	 * 
+	 * @param archive_stream
+	 * @param relocator
+	 * @throws IOException
+	 */
+	public void unarchiveToFileSystem(FileRelocator relocator)
+			throws IOException {
+		Entry entry;
+		while ((entry = getNextEntry()) != null) {
+
+			if (Thread.currentThread().isInterrupted())
+				break;
+
+			// Locate the entry in the file system
+			File entry_out = new File(relocator.relocate(entry.getName()));
+
+			if (entry.isDirectory()) {
+				// Make the directory
+				entry_out.mkdirs();
+			} else {
+				// Make necessary directories first
+				entry_out.getParentFile().mkdirs();
+				// And then write the file
+				FileOutputStream entry_outstream = new FileOutputStream(
+						entry_out);
+				Streams.pipeIOStream(this, entry_outstream);
+				// Finally close the stream
+				entry_outstream.close();
+			}
+		}
+		close();
+	}
+
+	@Override
+	public void close() throws IOException {
+		input_stream.close();
+	}
+
+	@Override
+	public int available() throws IOException {
+		return input_stream.available();
+	}
+
+	@Override
+	public void mark(int readlimit) {
+		input_stream.mark(readlimit);
+	}
+
+	@Override
+	public boolean markSupported() {
+		return input_stream.markSupported();
+	}
+
+	@Override
+	public int read(byte[] b) throws IOException {
+		return input_stream.read(b);
+	}
+
+	@Override
+	public int read(byte[] b, int off, int len) throws IOException {
+		return input_stream.read(b, off, len);
+	}
+
+	@Override
+	public void reset() throws IOException {
+		input_stream.reset();
+	}
+
+	@Override
+	public long skip(long n) throws IOException {
+		return input_stream.skip(n);
 	}
 
 }
