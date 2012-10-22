@@ -12,12 +12,11 @@ import org.kamranzafar.jtar.TarInputStream;
 import org.tukaani.xz.XZInputStream;
 
 public class Digger {
-	
-	public static InputStream decompress(int format, String compressed_file_path)
-			throws IOException {
-		return decompress(format, new File(compressed_file_path));
-	}
-	
+
+	public static final int TAR = 0;
+
+	public static final int XZ = 0;
+
 	public static InputStream decompress(int format, File compressed_file)
 			throws IOException {
 		return decompress(format, new FileInputStream(compressed_file));
@@ -27,12 +26,11 @@ public class Digger {
 			throws IOException {
 		return new XZInputStream(compressed_src);
 	}
-	
-	public static final int XZ = 0;
-	
-	public static final int TAR = 0;
 
-	private static final boolean DEBUG = false;
+	public static InputStream decompress(int format, String compressed_file_path)
+			throws IOException {
+		return decompress(format, new File(compressed_file_path));
+	}
 
 	/**
 	 * Extract the package to the TeXMF tree
@@ -40,7 +38,8 @@ public class Digger {
 	 * @return {@literal true} if the file is extracted fully; {@literal false}
 	 *         if any error occurs.
 	 */
-	public static boolean extractPackageFile(File pkg_file, String output_directory) {
+	public static boolean extractPackageFile(File pkg_file,
+			String output_directory) {
 		InputStream p_tar_xz_inpstr = null; // InputStream connecting to the
 											// downloaded file
 		XZInputStream p_tar_inpstr = null; // InputStream to the xz uncompressed
@@ -77,7 +76,7 @@ public class Digger {
 						|| entry.getName().startsWith("tlpkg"))
 					abs_entry_path = output_directory + "/" + entry.getName(); // getPathToTeXMFRootDirectory()
 				else
-					abs_entry_path = output_directory // 
+					abs_entry_path = output_directory //
 							+ "/texmf-dist/" + entry.getName();
 				if (entry.isDirectory()) {
 					File entry_dir = new File(abs_entry_path);
@@ -99,12 +98,12 @@ public class Digger {
 			}
 			return true;
 		} catch (FileNotFoundException e) {
-			if (DEBUG)
+			if (BuildConfig.DEBUG)
 				System.out.println("TeX.extractPackageFile : Input file "
 						+ pkg_file + " does not exist!");
 			e.printStackTrace();
 		} catch (IOException e) {
-			if (DEBUG)
+			if (BuildConfig.DEBUG)
 				System.out.println("TeX.extractPackageFile : I/O error "
 						+ pkg_file + " during extraction!");
 			e.printStackTrace();
@@ -117,7 +116,7 @@ public class Digger {
 				if (p_inpstr != null)
 					p_inpstr.close();
 			} catch (IOException e) {
-				if (DEBUG)
+				if (BuildConfig.DEBUG)
 					System.out
 							.println("TeX.extractPackageFile : IO error - cannot close streams.");
 				e.printStackTrace();

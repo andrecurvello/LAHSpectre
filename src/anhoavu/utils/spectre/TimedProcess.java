@@ -16,11 +16,6 @@ import java.util.TimerTask;
 public class TimedProcess {
 
 	/**
-	 * Constant indicating if we are debugging
-	 */
-	private static boolean DEBUG = false;
-
-	/**
 	 * Execute a process with a time out.
 	 * 
 	 * @param command
@@ -56,7 +51,7 @@ public class TimedProcess {
 
 			@Override
 			public void run() {
-				if (DEBUG)
+				if (BuildConfig.DEBUG)
 					System.out.println("TeX.execTimeOut : Process " + process
 							+ " exceeds time allowance of " + timeout
 							+ " miliseconds. Kill!");
@@ -64,7 +59,7 @@ public class TimedProcess {
 				try {
 					process.waitFor();
 				} catch (InterruptedException e) {
-					if (DEBUG)
+					if (BuildConfig.DEBUG)
 						System.out
 								.println("TeX.execTimeOut : Interrupted while waiting for process "
 										+ process + " to be fully destroyed.");
@@ -98,18 +93,18 @@ public class TimedProcess {
 		Process process = timed_process.getProcess();
 		TimerTask kill_process_task = timed_process.getProcessKillingTask();
 		try {
-			if (DEBUG)
+			if (BuildConfig.DEBUG)
 				System.out.println("TeX.execTimeOut : Waiting for process "
 						+ process + " to finish ...");
 			int result = process.waitFor();
-			if (DEBUG)
+			if (BuildConfig.DEBUG)
 				System.out.println("TeX.execTimeOut : Process " + process
 						+ " exits! Kill the timer and destroy the process.");
 			kill_process_task.cancel();
 			process.destroy();
 			return result;
 		} catch (InterruptedException e) {
-			if (DEBUG)
+			if (BuildConfig.DEBUG)
 				System.out
 						.println("TeX.execTimeOut : Interrupted while waiting for process "
 								+ process + " to finish.");

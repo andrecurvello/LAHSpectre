@@ -5,8 +5,6 @@ import java.util.TreeMap;
 
 public class CommandLineArguments {
 
-	private static final boolean DEBUG = false;
-
 	/**
 	 * General method to parse a String of command line arguments. This method
 	 * will generate a map that associates switches to their value.
@@ -19,7 +17,7 @@ public class CommandLineArguments {
 	public static Map<String, String> parseCommandLineArguments(String[] args) {
 		Map<String, String> arg_map = new TreeMap<String, String>();
 		String key = null, value = null;
-		if (DEBUG)
+		if (BuildConfig.DEBUG)
 			System.out.println("TeX.parseCommandLineArguments : Parse "
 					+ CollectionPrinter.stringOfObjectArray(args, " | "));
 
@@ -63,7 +61,7 @@ public class CommandLineArguments {
 			}
 		}
 
-		if (DEBUG)
+		if (BuildConfig.DEBUG)
 			System.out.println("TeX.parseCommandLineArguments : Result = "
 					+ CollectionPrinter.stringOfMap(arg_map));
 

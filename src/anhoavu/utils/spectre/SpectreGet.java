@@ -60,8 +60,6 @@ public class SpectreGet {
 
 	private static final int BUFFER_SIZE = 1024;
 
-	private static boolean DEBUG = true;
-
 	/**
 	 * Prefix for a temporary file name
 	 */
@@ -130,7 +128,7 @@ public class SpectreGet {
 		// the data structure will be clean up.
 
 		// Print out the download job summary
-		if (DEBUG) {
+		if (BuildConfig.DEBUG) {
 			System.out.println("TeX.downloadFile : URI = " + uri);
 			System.out.println("TeX.downloadFile : Output location = "
 					+ output_directory);
@@ -144,7 +142,7 @@ public class SpectreGet {
 		// Create the output directory if it does not exists
 		File dir = new File(output_directory);
 		if (!dir.exists() && dir.mkdirs()) {
-			if (DEBUG)
+			if (BuildConfig.DEBUG)
 				System.out
 						.println("TeX.downloadFile : Error - output directory cannot be created.");
 			return null;
@@ -162,7 +160,7 @@ public class SpectreGet {
 			urlconn = url.openConnection();
 			urlconn.connect();
 		} catch (IOException e) {
-			if (DEBUG)
+			if (BuildConfig.DEBUG)
 				System.out
 						.println("TeX.downloadFile : Error - cannot open the connection.");
 			return null;
@@ -184,7 +182,7 @@ public class SpectreGet {
 						int s = "filename=\"".length();
 						int e = params[i].length() - 1;
 						output_file_name = params[i].substring(s, e);
-						if (DEBUG) {
+						if (BuildConfig.DEBUG) {
 							System.out
 									.println("TeX.downloadFile : Remote file name = "
 											+ output_file_name
@@ -196,7 +194,7 @@ public class SpectreGet {
 			}
 			if (output_file_name == null) {
 				output_file_name = createNewTemporaryFileName(output_directory);
-				if (DEBUG)
+				if (BuildConfig.DEBUG)
 					System.out
 							.println("TeX.downloadFile : Name for output file = "
 									+ output_file_name
@@ -211,7 +209,7 @@ public class SpectreGet {
 		// Negation of download condition
 		if (!force_overwrite && output.exists()
 				&& remote_file_length == output.length()) {
-			if (DEBUG)
+			if (BuildConfig.DEBUG)
 				System.out.println("TeX.downloadFile : File " + output
 						+ " already exists with matching content length"
 						+ " and I am not forced to redownload,"
@@ -231,7 +229,7 @@ public class SpectreGet {
 		try {
 			remote_content_input_stream = urlconn.getInputStream();
 		} catch (IOException e) {
-			if (DEBUG)
+			if (BuildConfig.DEBUG)
 				System.out.println("TeX.downloadFile : Cannot stream " + uri);
 			e.printStackTrace();
 			return null;
@@ -242,7 +240,7 @@ public class SpectreGet {
 			download_file_output_stream = new BufferedOutputStream(
 					new FileOutputStream(output));
 		} catch (FileNotFoundException e) {
-			if (DEBUG)
+			if (BuildConfig.DEBUG)
 				System.out.println("TeX.downloadFile : File " + output
 						+ " does not exists");
 			e.printStackTrace();
@@ -259,7 +257,7 @@ public class SpectreGet {
 				if (count == -1)
 					break;
 			} catch (IOException e1) {
-				if (DEBUG)
+				if (BuildConfig.DEBUG)
 					System.out
 							.println("TeX.downloadFile : Cannot read data from remote host.");
 				e1.printStackTrace();
@@ -267,7 +265,7 @@ public class SpectreGet {
 				try {
 					download_file_output_stream.close();
 				} catch (IOException e) {
-					if (DEBUG)
+					if (BuildConfig.DEBUG)
 						System.out
 								.println("TeX.closeInputStream : Error closing input stream "
 										+ download_file_output_stream);
@@ -280,7 +278,7 @@ public class SpectreGet {
 			// return 'null' if we are interrupted
 			// http://stackoverflow.com/questions/65035/in-java-does-return-trump-finally
 			if (Thread.currentThread().isInterrupted()) {
-				if (DEBUG)
+				if (BuildConfig.DEBUG)
 					System.out
 							.println("TeX.downloadFile : Download is interrupted."
 									+ " Removing partial download file.");
@@ -289,7 +287,7 @@ public class SpectreGet {
 				try {
 					download_file_output_stream.close();
 				} catch (IOException e) {
-					if (DEBUG)
+					if (BuildConfig.DEBUG)
 						System.out
 								.println("TeX.closeInputStream : Error closing input stream "
 										+ download_file_output_stream);
@@ -302,7 +300,7 @@ public class SpectreGet {
 			total_bytes_downloaded += count;
 			try {
 				download_file_output_stream.write(buffer, 0, count);
-				if (DEBUG)
+				if (BuildConfig.DEBUG)
 					System.out.println("TeX.downloadFile : "
 							+ total_bytes_downloaded
 							+ "\t/"
@@ -311,7 +309,7 @@ public class SpectreGet {
 				if (listener != null)
 					listener.setProgress(total_bytes_downloaded);
 			} catch (IOException e) {
-				if (DEBUG)
+				if (BuildConfig.DEBUG)
 					System.out
 							.println("TeX.downloadFile : Cannot write data to file "
 									+ output);
@@ -320,7 +318,7 @@ public class SpectreGet {
 				try {
 					download_file_output_stream.close();
 				} catch (IOException e1) {
-					if (DEBUG)
+					if (BuildConfig.DEBUG)
 						System.out
 								.println("TeX.closeInputStream : Error closing input stream "
 										+ download_file_output_stream);
@@ -330,13 +328,13 @@ public class SpectreGet {
 			}
 		} while (true);
 
-		if (DEBUG)
+		if (BuildConfig.DEBUG)
 			System.out.println("TeX.downloadFile : Download finishes!");
 
 		try {
 			download_file_output_stream.close();
 		} catch (IOException e) {
-			if (DEBUG)
+			if (BuildConfig.DEBUG)
 				System.out
 						.println("TeX.downloadFile : Error closing file output stream!");
 			e.printStackTrace();
@@ -352,7 +350,7 @@ public class SpectreGet {
 		//
 		//
 		// } catch (IOException e) {
-		// if (DEBUG) {
+		// if (BuildConfig.DEBUG) {
 		// System.out.println("TeX.downloadFile : File cannot be written or download is interrupted!");
 		// System.out.println("TeX.downloadFile : Delete the partially downloaded file.");
 		// }
@@ -384,7 +382,7 @@ public class SpectreGet {
 			String output_directory, String output_file_name,
 			boolean force_overwrite) {
 		// Print out the download job summary
-		if (DEBUG) {
+		if (BuildConfig.DEBUG) {
 			System.out.println("SpectreGet # get : URI = " + uri);
 			System.out.println("SpectreGet # get : Output location = "
 					+ output_directory);

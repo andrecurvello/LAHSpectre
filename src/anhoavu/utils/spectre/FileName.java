@@ -4,9 +4,10 @@ package anhoavu.utils.spectre;
  * Collection of methods to process file name and extension
  * 
  * @author Vu An Hoa
- *
+ * 
  */
 public class FileName {
+
 	/**
 	 * Trim file extension, copied from {@link http
 	 * ://stackoverflow.com/questions

@@ -4,6 +4,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Various static methods to obtain {@link String} representation for
+ * collection-kind objects like array, list, map, ...
+ * 
+ * @author Vu An Hoa
+ * 
+ */
 public class CollectionPrinter {
 
 	/**

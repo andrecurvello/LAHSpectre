@@ -1,11 +1,14 @@
 package anhoavu.utils.spectre;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 public class Streams {
-	private static boolean DEBUG = true;
 
 	/**
 	 * Close stream without throwing exception.
@@ -17,71 +20,13 @@ public class Streams {
 		try {
 			inp_stream.close();
 		} catch (IOException e) {
-			if (DEBUG)
+			if (BuildConfig.DEBUG)
 				System.out
 						.println("TeX.closeInputStream : Error closing input stream "
 								+ inp_stream);
 			e.printStackTrace();
 		}
 	}
-
-	// static File downloadFile(String uri, String output_file) throws
-	// IOException {
-	// System.out.println("TeX.downloadFile : Download from " + uri
-	// + " and write to " + output_file);
-	//
-	// File f = new File(output_file);
-	//
-	// if (f.exists()) {
-	// if (f.isDirectory()) {
-	// if (DEBUG)
-	// System.out.println("TeX.downloadFile : Error - "
-	// + output_file + " is a directory!");
-	// return null;
-	// } else {
-	// if (DEBUG) {
-	// System.out.println("TeX.downloadFile : Warning "
-	// + output_file + " already exists!");
-	// System.out
-	// .println("TeX.downloadFile : Checking for size.");
-	// }
-	//
-	// URL url = new URL(uri);
-	// URLConnection urlconn = url.openConnection();
-	// urlconn.connect();
-	// int remote_file_length = urlconn.getContentLength();
-	//
-	// if (f.length() == remote_file_length) {
-	// if (DEBUG)
-	// System.out
-	// .println("TeX.downloadFile : The size of local file and remote file matches. Returning the local file instead of redownload.");
-	// // TODO Add overwrite-on-existing file option
-	// // or call-back-resume on existing file
-	// return f;
-	// }
-	// }
-	// }
-	//
-	// // the file does not exist yet
-	// URL url = new URL(uri);
-	// URLConnection urlconn = url.openConnection();
-	// urlconn.connect();
-	// InputStream is = urlconn.getInputStream();
-	//
-	// // create the necessary containing directories for the target output
-	// // file if they do not exists
-	// if (f.getParent() != null)
-	// f.getParentFile().mkdirs();
-	//
-	// // stream the remote file to local storage
-	// FileOutputStream fos = new FileOutputStream(f);
-	// pipeIOStream(is, fos);
-	// fos.close();
-	//
-	// if (DEBUG)
-	// System.out.println("TeX.downloadFile : Download finish!");
-	// return f;
-	// }
 
 	/**
 	 * Close stream without throwing exception.
@@ -93,7 +38,7 @@ public class Streams {
 		try {
 			out_stream.close();
 		} catch (IOException e) {
-			if (DEBUG)
+			if (BuildConfig.DEBUG)
 				System.out
 						.println("TeX.closeInputStream : Error closing input stream "
 								+ out_stream);
@@ -113,7 +58,7 @@ public class Streams {
 	 */
 	public static void pipeIOStream(InputStream inpstr, OutputStream outstr)
 			throws IOException {
-		byte[] buffer = new byte[1024];
+		byte[] buffer = new byte[BuildConfig.BUFFER_SIZE];
 		int count;
 		// Make this writing interrupt-safe
 		// TODO what about blocking case?
@@ -123,20 +68,45 @@ public class Streams {
 	}
 
 	/**
-	 * Read an {@link InputStream} until the end into a {@link String}
+	 * Read a text file to a string
+	 * 
+	 * @param path_to_file
+	 * @return A {@link String} containing the content of the file
+	 * @throws FileNotFoundException
+	 *             if the file does not exist
+	 * @throws IOException
+	 *             if the file cannot be read (for example, access denied)
+	 */
+	public static String readTextFile(String path_to_file)
+			throws FileNotFoundException, IOException {
+		File file = new File(path_to_file);
+		BufferedInputStream file_inpstr = new BufferedInputStream(
+				new FileInputStream(file));
+		String content = readTillEnd(file_inpstr);
+		file_inpstr.close();
+		return content;
+	}
+
+	/**
+	 * Read an {@link InputStream} until the end into a {@link String}, return
+	 * the partially read content if the running thread is interrupted
 	 * 
 	 * @param inpstr
 	 *            {@link InputStream} to read from
-	 * @return the {@link String} obtaining from all bytes read
+	 * @return the {@link String} containing all bytes read from the stream till
+	 *         end or right before interruption
 	 * @throws IOException
+	 *             if the stream cannot be read
 	 */
 	public static String readTillEnd(InputStream inpstr) throws IOException {
-		byte[] buffer = new byte[1024];
-		StringBuffer res = new StringBuffer();
+		byte[] buffer = new byte[BuildConfig.BUFFER_SIZE];
+		StringBuilder stream_content_builder = new StringBuilder();
 		int count;
-		while ((count = inpstr.read(buffer)) != -1)
-			res.append(new String(buffer, 0, count));
-		return res.toString();
+		while (!Thread.currentThread().isInterrupted()
+				&& (count = inpstr.read(buffer)) != -1) {
+			stream_content_builder.append(new String(buffer, 0, count));
+		}
+		return stream_content_builder.toString();
 	}
 
 }
