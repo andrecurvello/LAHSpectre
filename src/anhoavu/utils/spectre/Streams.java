@@ -48,23 +48,28 @@ public class Streams {
 
 	/**
 	 * Pipe an input stream directly into an output stream; this is useful for
-	 * various I/O purposes.
+	 * various I/O purposes. The caller is in charge of time out this method to
+	 * account for blocking input.
 	 * 
 	 * @param inpstr
 	 *            {@link InputStream} to take from
 	 * @param outstr
 	 *            {@link OutputStream} to write to
 	 * @throws IOException
+	 * @throws InterruptedException
 	 */
 	public static void pipeIOStream(InputStream inpstr, OutputStream outstr)
-			throws IOException {
+			throws IOException, InterruptedException {
 		byte[] buffer = new byte[BuildConfig.BUFFER_SIZE];
 		int count;
-		// Make this writing interrupt-safe
-		// TODO what about blocking case?
-		while (!Thread.currentThread().isInterrupted()
-				&& (count = inpstr.read(buffer)) != -1)
+
+		while ((count = inpstr.read(buffer)) != -1) {
+			// Make this reading & writing interrupt-safe
+			if (Thread.currentThread().isInterrupted())
+				throw new InterruptedException("Streams.pipeIOStream");
+
 			outstr.write(buffer, 0, count);
+		}
 	}
 
 	/**
