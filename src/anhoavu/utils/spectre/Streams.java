@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -123,6 +124,21 @@ public class Streams {
 			stream_content_builder.append(new String(buffer, 0, count));
 		}
 		return stream_content_builder.toString();
+	}
+
+	/**
+	 * Stream an {@link InputStream} to a local file
+	 * 
+	 * @param inpstr
+	 * @param out
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static void streamToFile(InputStream inpstr, File out)
+			throws IOException, InterruptedException {
+		FileOutputStream out_str = new FileOutputStream(out);
+		pipeIOStream(inpstr, out_str);
+		out_str.close();
 	}
 
 }

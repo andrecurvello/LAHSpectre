@@ -193,7 +193,7 @@ public class Digger extends InputStream {
 	 * @param tar_stream
 	 * @param relocator
 	 * @throws IOException
-	 * @throws InterruptedException 
+	 * @throws InterruptedException
 	 */
 	public static void untarToFileSystem(TarInputStream tar_stream,
 			FileRelocator relocator) throws IOException, InterruptedException {
@@ -306,7 +306,7 @@ public class Digger extends InputStream {
 	 * @param archive_stream
 	 * @param relocator
 	 * @throws IOException
-	 * @throws InterruptedException 
+	 * @throws InterruptedException
 	 */
 	public void unarchiveToFileSystem(FileRelocator relocator)
 			throws IOException, InterruptedException {
