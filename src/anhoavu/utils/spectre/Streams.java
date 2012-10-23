@@ -68,7 +68,22 @@ public class Streams {
 	}
 
 	/**
-	 * Read a text file to a string
+	 * Read the content of a text file and return it as a string
+	 * 
+	 * @param file
+	 * @return
+	 * @throws IOException
+	 */
+	public static String readTextFile(File file) throws IOException {
+		BufferedInputStream file_inpstr = new BufferedInputStream(
+				new FileInputStream(file));
+		String content = readTillEnd(file_inpstr);
+		file_inpstr.close();
+		return content;
+	}
+
+	/**
+	 * Read a text file to a string given its name
 	 * 
 	 * @param path_to_file
 	 * @return A {@link String} containing the content of the file
@@ -80,11 +95,7 @@ public class Streams {
 	public static String readTextFile(String path_to_file)
 			throws FileNotFoundException, IOException {
 		File file = new File(path_to_file);
-		BufferedInputStream file_inpstr = new BufferedInputStream(
-				new FileInputStream(file));
-		String content = readTillEnd(file_inpstr);
-		file_inpstr.close();
-		return content;
+		return readTextFile(file);
 	}
 
 	/**
