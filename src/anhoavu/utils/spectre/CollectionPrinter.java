@@ -63,6 +63,17 @@ public class CollectionPrinter {
 		return null;
 	}
 
+	public static String stringOfSet(Set<?> set, String sep) {
+		StringBuilder res = new StringBuilder("{");
+		boolean first_element = true;
+		for (Object m : set) {
+			res.append((first_element ? "" : sep));
+			res.append(m.toString());
+			first_element = false;
+		}
+		return res.append("}").toString();
+	}
+
 	public static String stringOfMap(Map<?, ?> map) {
 		StringBuilder res = new StringBuilder();
 		Set<?> keys = map.keySet();
