@@ -419,8 +419,9 @@ public class SpectreGet {
 			String output_directory, String output_file_name,
 			boolean force_download) throws InterruptedException, IOException,
 			MakeDirectoryException {
-		summarize(listener, output_file_name, output_file_name,
-				output_file_name, force_download);
+		// Print a summary of what we are going to do
+		summarize(listener, uri, output_directory, output_file_name,
+				force_download);
 
 		// Create the output directory if it does not exists
 		File dir = new File(output_directory);
@@ -430,13 +431,27 @@ public class SpectreGet {
 				throw new MakeDirectoryException(output_directory);
 		}
 
-		URL url;
-		URLConnection urlconn;
-		url = new URL(uri);
-		urlconn = url.openConnection();
+		// Open a connection
+		URL url = new URL(uri);
+		if (BuildConfig.DEBUG)
+			System.out.println("SpectreGet.get : Openning connection.");
+		URLConnection urlconn = url.openConnection();
+		if (BuildConfig.DEBUG)
+			System.out
+					.println("SpectreGet.get : Connection is open. Now we try to connect");
 		urlconn.connect();
+		if (BuildConfig.DEBUG)
+			System.out.println("SpectreGet.get : We are connected.");
 
-		long remote_file_length = urlconn.getContentLengthLong();
+		// Determine the content length
+		if (BuildConfig.DEBUG)
+			System.out
+					.println("SpectreGet.get : Try to get the content length.");
+		// getContentLengthLong() is preferred but it is ONLY available at 1.7!
+		int remote_file_length = urlconn.getContentLength();
+		if (BuildConfig.DEBUG)
+			System.out.println("SpectreGet.get : Remote content length = "
+					+ remote_file_length);
 
 		// Now download the file if
 		// we are forced to download; or
@@ -444,10 +459,16 @@ public class SpectreGet {
 		// the output file exists but its size does not match the content length
 		// specified by the server.
 		String disp = urlconn.getHeaderField("Content-Disposition");
+		if (BuildConfig.DEBUG)
+			System.out.println("SpectreGet.get : Content-Disposition := "
+					+ disp);
 		output_file_name = getOutputFileName(output_file_name, disp,
 				output_directory);
 		File output = new File(output_directory + File.separator
 				+ output_file_name);
+		if (BuildConfig.DEBUG)
+			System.out.println("SpectreGet.get : Finalized output file := "
+					+ output);
 
 		if (!force_download && output.exists()
 				&& remote_file_length == output.length()) {
@@ -557,13 +578,13 @@ public class SpectreGet {
 			boolean force_overwrite) {
 		// Print out the download job summary
 		if (BuildConfig.DEBUG) {
-			System.out.println("SpectreGet # get : URI = " + uri);
-			System.out.println("SpectreGet # get : Output location = "
+			System.out.println("SpectreGet.get : URI              := " + uri);
+			System.out.println("SpectreGet.get : Output location  := "
 					+ output_directory);
-			System.out.println("SpectreGet # get : Output file name = "
+			System.out.println("SpectreGet.get : Output file name := "
 					+ (output_file_name == null ? "<unspecified>"
 							: output_file_name));
-			System.out.println("SpectreGet # get : Force overwrite = "
+			System.out.println("SpectreGet.get : Force overwrite  := "
 					+ (force_overwrite ? "yes" : "no"));
 		}
 	}
