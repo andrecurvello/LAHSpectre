@@ -18,8 +18,9 @@ public class CommandLineArguments {
 		Map<String, String> arg_map = new TreeMap<String, String>();
 		String key = null, value = null;
 		if (BuildConfig.DEBUG)
-			System.out.println("TeX.parseCommandLineArguments : Parse "
-					+ CollectionPrinter.stringOfObjectArray(args, " | "));
+			System.out.println("parseCommandLineArguments : Parse "
+					+ CollectionPrinter.stringOfArray(args, " | ", "[ ",
+							" ]"));
 
 		for (int i = 0; i < args.length; i++) {
 			// Special handling for the program name
@@ -62,8 +63,9 @@ public class CommandLineArguments {
 		}
 
 		if (BuildConfig.DEBUG)
-			System.out.println("TeX.parseCommandLineArguments : Result = "
-					+ CollectionPrinter.stringOfMap(arg_map));
+			System.out.println("parseCommandLineArguments : Result = "
+					+ CollectionPrinter.stringOfMap(arg_map, ", ", "-->", "[ ",
+							" ]"));
 
 		return arg_map;
 	}

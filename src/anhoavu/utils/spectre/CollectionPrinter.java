@@ -1,5 +1,6 @@
 package anhoavu.utils.spectre;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,89 +15,129 @@ import java.util.Set;
 public class CollectionPrinter {
 
 	/**
-	 * Concatenate a list of object
+	 * Get a string representation for an array of objects
+	 * 
+	 * @param objs
+	 *            The array of objects
+	 * @param sep
+	 *            The separator to insert between objects
+	 * @param prefix
+	 *            Prefix of string result
+	 * @param suffix
+	 *            Suffix of string result
+	 * @return
+	 */
+	public static String stringOfArray(Object[] objs, String sep,
+			String prefix, String suffix) {
+		StringBuilder res = new StringBuilder(prefix == null ? "" : prefix);
+		if (objs != null) {
+			boolean first_element = true;
+			for (Object o : objs) {
+				res.append((first_element ? "" : sep));
+				res.append(o.toString());
+				first_element = false;
+			}
+		}
+		return res.append(suffix == null ? "" : suffix).toString();
+	}
+
+	/**
+	 * Get a string representation for a collection of object
+	 * 
+	 * @param collection
+	 * @param sep
+	 * @return
+	 */
+	public static String stringOfCollection(Collection<?> collection,
+			String sep, String prefix, String suffix) {
+		StringBuilder res = new StringBuilder(prefix == null ? "" : prefix);
+		if (collection != null) {
+			boolean first_element = true;
+			for (Object elem : collection) {
+				res.append((first_element ? "" : sep));
+				res.append(elem.toString());
+				first_element = false;
+			}
+		}
+		return res.append(suffix == null ? "" : suffix).toString();
+	}
+
+	/**
+	 * Get a string representation for a list of object
 	 * 
 	 * @param list
 	 * @param sep
 	 * @return
 	 */
-	public static String concatList(List<?> list, String sep) {
-		if (list == null)
-			return null;
-
-		switch (list.size()) {
-		case 0:
-			return "{}";
-		case 1:
-			return "{" + list.get(0).toString() + "}";
-		default:
-			StringBuilder result = new StringBuilder("{"
-					+ list.get(0).toString());
-			for (int i = 1; i < list.size(); i++) {
-				result.append(sep).append(list.get(i).toString());
+	public static String stringOfList(List<?> list, String sep, String prefix,
+			String suffix) {
+		StringBuilder res = new StringBuilder(prefix == null ? "" : prefix);
+		if (list != null) {
+			boolean first_element = true;
+			for (Object e : list) {
+				res.append((first_element ? "" : sep));
+				res.append(e.toString());
+				first_element = false;
 			}
-			return result.append("}").toString();
 		}
+		return res.append(suffix == null ? "" : suffix).toString();
 	}
 
 	/**
-	 * Concat all strings in a list of string using a specified separator
+	 * Get a string representation of a key-value map
 	 * 
-	 * @param strs
+	 * @param map
+	 *            The map to get string representation
 	 * @param sep
+	 *            The string to separate key-value pairs, usually comma
+	 * @param mapto
+	 *            The string to insert between key and value, usually "->"
+	 * @param prefix
+	 *            Prefix of the output string
+	 * @param suffix
+	 *            Suffix of the output string
 	 * @return
 	 */
-	public static String concatListStrings(List<String> strs, String sep) {
-		if (strs != null) {
-			int num_str = strs.size();
-
-			if (num_str == 0)
-				return "";
-
-			StringBuilder res = new StringBuilder();
-			res.append(strs.get(0));
-			for (int i = 1; i < num_str; i++) {
-				res.append(sep + strs.get(i));
+	public static <K, V> String stringOfMap(Map<K, V> map, String sep,
+			String mapto, String prefix, String suffix) {
+		StringBuilder res = new StringBuilder(prefix == null ? "" : prefix);
+		if (map != null) {
+			Set<Map.Entry<K, V>> entries = map.entrySet();
+			boolean first_element = true;
+			for (Map.Entry<K, V> e : entries) {
+				K key = e.getKey();
+				V value = e.getValue();
+				res.append((first_element ? "" : sep));
+				res.append(key.toString());
+				res.append(mapto);
+				res.append(value.toString());
+				first_element = false;
 			}
-			return res.toString();
 		}
-		return null;
-	}
-
-	public static String stringOfMap(Map<?, ?> map) {
-		StringBuilder res = new StringBuilder();
-		Set<?> keys = map.keySet();
-		for (Object k : keys) {
-			Object v = map.get(k);
-			res.append("\"" + k.toString() + "\" --> \"" + v.toString()
-					+ "\" | ");
-		}
-		return "{" + res.toString() + "}";
+		return res.append(suffix == null ? "" : suffix).toString();
 	}
 
 	/**
-	 * Get a string representation for an array of objects
+	 * Get a string representation of a set of objects
 	 * 
-	 * @param strs
+	 * @param set
 	 * @param sep
+	 * @param prefix
+	 * @param suffix
 	 * @return
 	 */
-	public static String stringOfObjectArray(Object[] strs, String sep) {
-		StringBuilder res = new StringBuilder();
-		for (Object s : strs)
-			res.append(s + sep);
-		return res.toString();
-	}
-
-	public static String stringOfSet(Set<?> set, String sep) {
-		StringBuilder res = new StringBuilder("{");
-		boolean first_element = true;
-		for (Object m : set) {
-			res.append((first_element ? "" : sep));
-			res.append(m.toString());
-			first_element = false;
+	public static String stringOfSet(Set<?> set, String sep, String prefix,
+			String suffix) {
+		StringBuilder res = new StringBuilder(prefix == null ? "" : prefix);
+		if (set != null) {
+			boolean first_element = true;
+			for (Object m : set) {
+				res.append((first_element ? "" : sep));
+				res.append(m.toString());
+				first_element = false;
+			}
 		}
-		return res.append("}").toString();
+		return res.append(suffix == null ? "" : suffix).toString();
 	}
 
 }
