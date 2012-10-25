@@ -1,4 +1,4 @@
-package anhoavu.utils.spectre;
+package lah.utils.spectre;
 
 /**
  * Collection of methods to process file name and extension

@@ -1,4 +1,4 @@
-package anhoavu.utils.spectre;
+package lah.utils.spectre;
 
 /**
  * Interface for an archive entry which represents a file or directory when it

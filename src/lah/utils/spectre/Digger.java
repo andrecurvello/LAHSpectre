@@ -1,4 +1,4 @@
-package anhoavu.utils.spectre;
+package lah.utils.spectre;
 
 import java.io.File;
 import java.io.FileInputStream;
