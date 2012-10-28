@@ -44,4 +44,18 @@ public class FileName {
 	public static String replaceFileExt(String file_name, String new_ext) {
 		return removeFileExtension(file_name) + "." + new_ext;
 	}
+
+	/**
+	 * Get the file extension
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public static String getExtension(String name) {
+		int dot = name.lastIndexOf('.');
+		if (dot == -1 || dot == name.length() - 1)
+			return "";
+		else
+			return name.substring(dot + 1);
+	}
 }
