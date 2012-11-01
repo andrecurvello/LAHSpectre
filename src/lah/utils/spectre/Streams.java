@@ -134,10 +134,17 @@ public class Streams {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public static void streamToFile(InputStream inpstr, File out)
-			throws IOException, InterruptedException {
+	public static void streamToFile(InputStream inpstr, File out,
+			boolean deleteOnInterruption) throws IOException,
+			InterruptedException {
 		FileOutputStream out_str = new FileOutputStream(out);
-		pipeIOStream(inpstr, out_str);
+		try {
+			pipeIOStream(inpstr, out_str);
+		} catch (InterruptedException e) {
+			if (deleteOnInterruption)
+				out.delete();
+			throw e;
+		}
 		out_str.close();
 	}
 

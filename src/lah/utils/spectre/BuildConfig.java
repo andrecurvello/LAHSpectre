@@ -10,6 +10,6 @@ public class BuildConfig {
 	/**
 	 * Constant indicating if we are debugging
 	 */
-	public static boolean DEBUG = true;
+	public static boolean DEBUG = false;
 
 }
