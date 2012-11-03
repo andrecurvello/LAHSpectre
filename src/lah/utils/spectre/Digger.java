@@ -113,7 +113,8 @@ public class Digger extends InputStream {
 			FileRelocator relocator, Listener listener) throws IOException,
 			InterruptedException {
 		TarEntry entry;
-		listener.notifyMaxProgress(-1);
+		if (listener != null)
+			listener.notifyMaxProgress(-1);
 		int num_entries_processed = 0;
 		while ((entry = tar_stream.getNextEntry()) != null) {
 
@@ -141,7 +142,8 @@ public class Digger extends InputStream {
 			}
 			
 			num_entries_processed++;
-			listener.notifyCurrentProgress(num_entries_processed);
+			if (listener != null)
+				listener.notifyCurrentProgress(num_entries_processed);
 		}
 		tar_stream.close();
 	}
