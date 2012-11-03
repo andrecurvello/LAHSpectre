@@ -488,6 +488,10 @@ public class SpectreGet {
 		int total_num_bytes_downloaded = 0;
 		int count;
 
+		// Notify the listener that the download now starts
+		if (listener != null)
+			listener.notifyProgress(total_num_bytes_downloaded);
+		
 		// Fetch data from remote host to the buffer
 		while (true) {
 			try {
