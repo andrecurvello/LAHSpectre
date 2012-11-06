@@ -540,7 +540,11 @@ public class SpectreGet {
 			return new Result(output, true);
 		} catch (IOException e) {
 			throw new IOException(
-					"Download file error! This is possibly because the remote host is down.");
+					"Cannot download or write file! This is possibly because:"
+							+ "The remote host is down.\n"
+							+ "You have no Internet connection.\n"
+							+ "You are disconnected.\n"
+							+ "Your device is write-protected or out of space.");
 		}
 	}
 

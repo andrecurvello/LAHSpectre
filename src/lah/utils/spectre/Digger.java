@@ -118,9 +118,10 @@ public class Digger extends InputStream {
 		int num_entries_processed = 0;
 		while ((entry = tar_stream.getNextEntry()) != null) {
 
-			if (Thread.currentThread().isInterrupted())
-				break;
-
+			if (Thread.currentThread().isInterrupted()) {
+				throw new InterruptedException("Interrupted while extracting file.");
+			}
+			
 			// Locate the entry in the file system
 			File entry_out = new File(relocator.locate(entry.getName()));
 
@@ -130,17 +131,16 @@ public class Digger extends InputStream {
 			} else {
 				// Make necessary directories first
 				entry_out.getParentFile().mkdirs();
-
-				// And then write the file
-				FileOutputStream entry_outstream = new FileOutputStream(
-						entry_out);
-
-				Streams.pipeIOStream(tar_stream, entry_outstream);
-
-				// Finally close the stream
-				entry_outstream.close();
+				// And then write the file, delete when interrupted
+				try {
+					Streams.streamToFile(tar_stream, entry_out, true);
+				} catch (InterruptedException e) {
+					throw new InterruptedException("Interrupted while extracting file.");
+				} catch (IOException e) {
+					throw new IOException("Cannot write file.");
+				}
 			}
-			
+
 			num_entries_processed++;
 			if (listener != null)
 				listener.notifyCurrentProgress(num_entries_processed);
