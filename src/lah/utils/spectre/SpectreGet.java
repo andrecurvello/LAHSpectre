@@ -417,8 +417,8 @@ public class SpectreGet {
 	 */
 	public static Result get(Listener listener, String uri,
 			String output_directory, String output_file_name,
-			boolean force_download) throws InterruptedException, IOException,
-			MakeDirectoryException {
+			boolean force_download) throws InterruptedException,
+			MakeDirectoryException, IOException {
 		// Print a summary of what we are going to do
 		summarize(listener, uri, output_directory, output_file_name,
 				force_download);
@@ -428,20 +428,28 @@ public class SpectreGet {
 		if (!dir.exists()) {
 			dir.mkdirs();
 			if (!dir.exists())
-				throw new MakeDirectoryException(output_directory);
+				throw new MakeDirectoryException("Cannot create directory "
+						+ output_directory + " to write downloaded file to.");
 		}
 
-		// Open a connection
-		URL url = new URL(uri);
 		if (BuildConfig.DEBUG)
 			System.out.println("SpectreGet.get : Openning connection.");
-		URLConnection urlconn = url.openConnection();
-		if (BuildConfig.DEBUG)
-			System.out
-					.println("SpectreGet.get : Connection is open. Now we try to connect");
-		urlconn.connect();
-		if (BuildConfig.DEBUG)
-			System.out.println("SpectreGet.get : We are connected.");
+		URLConnection urlconn;
+		try {
+			// Open a connection
+			URL url = new URL(uri);
+			urlconn = url.openConnection();
+			if (BuildConfig.DEBUG)
+				System.out
+						.println("SpectreGet.get : Connection is open. Now we try to connect.");
+			urlconn.connect();
+			if (BuildConfig.DEBUG)
+				System.out.println("SpectreGet.get : We are connected.");
+		} catch (IOException e) {
+			// possibly a malform URL as well!
+			throw new IOException(
+					"Cannot open connection. Please check your network.");
+		}
 
 		// Determine the content length
 		if (BuildConfig.DEBUG)
@@ -479,54 +487,61 @@ public class SpectreGet {
 		if (listener != null)
 			listener.notifyContentLength(remote_file_length);
 
-		InputStream remote_input_stream = urlconn.getInputStream();
+		InputStream remote_input_stream;
+		try {
+			remote_input_stream = urlconn.getInputStream();
+			OutputStream file_output_stream = new BufferedOutputStream(
+					new FileOutputStream(output));
 
-		OutputStream file_output_stream = new BufferedOutputStream(
-				new FileOutputStream(output));
+			byte[] buffer = new byte[BuildConfig.BUFFER_SIZE];
+			int total_num_bytes_downloaded = 0;
+			int count;
 
-		byte[] buffer = new byte[BuildConfig.BUFFER_SIZE];
-		int total_num_bytes_downloaded = 0;
-		int count;
-
-		// Notify the listener that the download now starts
-		if (listener != null)
-			listener.notifyProgress(total_num_bytes_downloaded);
-		
-		// Fetch data from remote host to the buffer
-		while (true) {
-			try {
-				count = remote_input_stream.read(buffer);
-				if (count == -1)
-					break;
-			} catch (IOException e) {
-				// Catch the exception to close the stream and then throw it
-				// back to the caller to handle.
-				file_output_stream.close();
-				throw e;
-			}
-
-			// If we are interrupted after reading (but not finish writing)
-			// throw an InterruptedException to the caller
-			if (Thread.currentThread().isInterrupted()) {
-				file_output_stream.close();
-				throw new InterruptedException("SpectreGet.get");
-			}
-
-			// Write the data to the output stream
-			total_num_bytes_downloaded += count;
-			file_output_stream.write(buffer, 0, count);
+			// Notify the listener that the download now starts
 			if (listener != null)
 				listener.notifyProgress(total_num_bytes_downloaded);
+
+			// Fetch data from remote host to the buffer
+			while (true) {
+				try {
+					count = remote_input_stream.read(buffer);
+					if (count == -1)
+						break;
+				} catch (IOException e) {
+					// Catch the exception to close the stream and then throw it
+					// back to the caller to handle.
+					file_output_stream.close();
+					throw e;
+				}
+
+				// If we are interrupted after reading (but not finish writing)
+				// throw an InterruptedException to the caller
+				if (Thread.currentThread().isInterrupted()) {
+					file_output_stream.close();
+					throw new InterruptedException(
+							"Interrupted while downloading file.");
+				}
+
+				// Write the data to the output stream
+				total_num_bytes_downloaded += count;
+				file_output_stream.write(buffer, 0, count);
+				if (listener != null)
+					listener.notifyProgress(total_num_bytes_downloaded);
+			}
+
+			// Remark: we only close the (local) output stream, the remote
+			// stream
+			// should not be closed since it might cause block.
+			file_output_stream.close();
+
+			if (listener != null)
+				listener.notifyComplete();
+
+			return new Result(output, true);
+		} catch (IOException e) {
+			throw new IOException(
+					"Download file error! This is possibly because the remote host is down.");
 		}
-
-		// Remark: we only close the (local) output stream, the remote stream
-		// should not be closed since it might cause block.
-		file_output_stream.close();
-
-		if (listener != null)
-			listener.notifyComplete();
-
-		return new Result(output, true);
 	}
 
 	/**
