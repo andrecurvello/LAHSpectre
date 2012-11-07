@@ -17,14 +17,6 @@ import org.tukaani.xz.XZInputStream;
  */
 public class Digger extends InputStream {
 
-	public interface Listener {
-
-		void notifyCurrentProgress(int progress);
-
-		void notifyMaxProgress(int max_progress);
-
-	}
-
 	/**
 	 * Interface for objects which relocates files within an archive
 	 */
@@ -39,6 +31,14 @@ public class Digger extends InputStream {
 	 */
 	public enum Format {
 		BZIP2, GZIP, TAR, XZ, ZIP
+	}
+
+	public interface Listener {
+
+		void notifyCurrentProgress(int progress);
+
+		void notifyMaxProgress(int max_progress);
+
 	}
 
 	/**

@@ -13,8 +13,8 @@ package lah.utils.spectre;
  */
 public interface ResourceListener<O, P> {
 
-	void onResourceReceived(O resource);
-
 	void onResourceProgress(P progress);
+
+	void onResourceReceived(O resource);
 
 }

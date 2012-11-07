@@ -2,6 +2,8 @@ package lah.utils.spectre;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -15,42 +17,19 @@ import java.util.TimerTask;
  */
 public class TimedProcess {
 
-	/**
-	 * Execute a process with a time out.
-	 * 
-	 * Note: currently, environment is not taken into account.
-	 * 
-	 * @param command
-	 *            Tokenized program and arguments to construct process as in
-	 *            {@link Runtime#exec(String[], String[], File)}
-	 * @param environment
-	 *            Program environment as in
-	 *            {@link Runtime#exec(String[], String[], File)}
-	 * @param directory
-	 *            Directory to run the process as in
-	 *            {@link Runtime#exec(String[], String[], File)}
-	 * @param timer
-	 *            A timer object to schedule the killing of the process on
-	 *            timeout, input {@literal null} will generate a new object
-	 * @param timeout
-	 *            The time that we allow the process to run
-	 * @return An instance of {@link TimedProcess} with which the caller can
-	 *         decide to wait, interact via stdin/System.out.println of that
-	 *         process in any way it wants.
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
 	public static TimedProcess create(String[] command, String[] environment,
-			File directory, File stdoutput, Timer timer, final long timeout)
+			File directory, OutputStream stdout, Timer timer, final long timeout)
 			throws IOException, InterruptedException {
-		// Process process = Runtime.getRuntime().exec(command, environment,
-		// directory);
-		ProcessBuilder proc_builder = new ProcessBuilder(command);
-		proc_builder.directory(directory);
-		final Process process = proc_builder.start();
-		
-		if (stdoutput != null)
-			proc_builder.redirectOutput(stdoutput);
+		final Process process = Runtime.getRuntime().exec(command, environment,
+				directory);
+
+		// Consume the stderr and stdout in background
+		// Attempt close the stream to stdout on exit (normally/Exception)
+		Streams.pipeIOStreamInBackground(process.getInputStream(), stdout,
+				true, true);
+		// Just ignore the stderr
+		Streams.pipeIOStreamInBackground(process.getErrorStream(), null, false,
+				false);
 
 		if (timer == null)
 			timer = new Timer();
@@ -79,6 +58,76 @@ public class TimedProcess {
 	}
 
 	/**
+	 * Execute a process with a time out.
+	 * 
+	 * Note: currently, environment is not taken into account.
+	 * 
+	 * @param command
+	 *            Tokenized program and arguments to construct process as in
+	 *            {@link Runtime#exec(String[], String[], File)}
+	 * @param environment
+	 *            Program environment as in
+	 *            {@link Runtime#exec(String[], String[], File)}
+	 * @param directory
+	 *            Directory to run the process as in
+	 *            {@link Runtime#exec(String[], String[], File)}
+	 * @param timer
+	 *            A timer object to schedule the killing of the process on
+	 *            timeout, input {@literal null} will generate a new object
+	 * @param timeout
+	 *            The time that we allow the process to run
+	 * @return An instance of {@link TimedProcess} with which the caller can
+	 *         decide to wait, interact via stdin/System.out.println of that
+	 *         process in any way it wants.
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static TimedProcess create(String[] command, String[] environment,
+			File directory, Timer timer, final long timeout)
+			throws IOException, InterruptedException {
+		return create(command, environment, directory, null, timer, timeout);
+	}
+
+	public static int execute(String[] command, String[] environment,
+			File directory, OutputStream stdout, Timer timer, final long timeout)
+			throws IOException, InterruptedException {
+		TimedProcess timed_process = create(command, environment, directory,
+				stdout, timer, timeout);
+		Process process = timed_process.getProcess();
+		InputStream stdoutstr = process.getInputStream();
+		InputStream stderrstr = process.getErrorStream();
+		OutputStream stdinstr = process.getOutputStream();
+		TimerTask kill_process_task = timed_process.getProcessKillingTask();
+		try {
+			if (BuildConfig.DEBUG)
+				System.out.println("TeX.execTimeOut : Waiting for process "
+						+ process + " to finish ...");
+			int result = process.waitFor();
+			if (BuildConfig.DEBUG)
+				System.out.println("TeX.execTimeOut : Process " + process
+						+ " exits! Kill the timer and destroy the process.");
+			kill_process_task.cancel();
+			// stdoutstr.close(); // closing here might make the background
+			// thread consuming this exit
+			stdinstr.close();
+			stderrstr.close();
+			process.destroy();
+			return result;
+		} catch (InterruptedException e) {
+			if (BuildConfig.DEBUG)
+				System.out
+						.println("TeX.execTimeOut : Interrupted while waiting for process "
+								+ process + " to finish.");
+			stdoutstr.close();
+			stdinstr.close();
+			stderrstr.close();
+			process.destroy();
+			process.waitFor();
+			throw e;
+		}
+	}
+
+	/**
 	 * Similar to
 	 * {@link TimedProcess#create(String[], String[], File, Timer, long)} but we
 	 * are not interested in additional I/O but only the final output value of
@@ -94,32 +143,9 @@ public class TimedProcess {
 	 * @throws InterruptedException
 	 */
 	public static int execute(String[] command, String[] environment,
-			File directory, File stdout, Timer timer, final long timeout)
+			File directory, Timer timer, final long timeout)
 			throws IOException, InterruptedException {
-		TimedProcess timed_process = create(command, environment, directory,
-				stdout, timer, timeout);
-		Process process = timed_process.getProcess();
-		TimerTask kill_process_task = timed_process.getProcessKillingTask();
-		try {
-			if (BuildConfig.DEBUG)
-				System.out.println("TeX.execTimeOut : Waiting for process "
-						+ process + " to finish ...");
-			int result = process.waitFor();
-			if (BuildConfig.DEBUG)
-				System.out.println("TeX.execTimeOut : Process " + process
-						+ " exits! Kill the timer and destroy the process.");
-			kill_process_task.cancel();
-			process.destroy();
-			return result;
-		} catch (InterruptedException e) {
-			if (BuildConfig.DEBUG)
-				System.out
-						.println("TeX.execTimeOut : Interrupted while waiting for process "
-								+ process + " to finish.");
-			process.destroy();
-			process.waitFor();
-			throw e;
-		}
+		return execute(command, environment, directory, null, timer, timeout);
 	}
 
 	/**

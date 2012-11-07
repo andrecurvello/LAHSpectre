@@ -19,8 +19,7 @@ public class CommandLineArguments {
 		String key = null, value = null;
 		if (BuildConfig.DEBUG)
 			System.out.println("parseCommandLineArguments : Parse "
-					+ CollectionPrinter.stringOfArray(args, " | ", "[ ",
-							" ]"));
+					+ CollectionPrinter.stringOfArray(args, " | ", "[ ", " ]"));
 
 		for (int i = 0; i < args.length; i++) {
 			// Special handling for the program name

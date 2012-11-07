@@ -12,6 +12,50 @@ import java.io.OutputStream;
 
 public class Streams {
 
+	private static class StreamingRunnable implements Runnable {
+
+		private boolean close_input_on_exit;
+
+		private boolean close_output_on_exit;
+
+		private InputStream input_stream;
+
+		private OutputStream output_stream;
+
+		public StreamingRunnable(InputStream inpstr, OutputStream outstr,
+				boolean closeinp, boolean closeout) {
+			input_stream = inpstr;
+			output_stream = outstr;
+			close_input_on_exit = closeinp;
+			close_output_on_exit = closeout;
+		}
+
+		@Override
+		public void run() {
+			try {
+				pipeIOStream(input_stream, output_stream);
+			} catch (IOException e) {
+				// Ignore exception
+			} catch (InterruptedException e) {
+				// Ignore exception
+			} finally {
+				// Close streams if applicable
+				if (input_stream != null && close_input_on_exit) {
+					try {
+						input_stream.close();
+					} catch (IOException e) {
+					}
+				}
+				if (output_stream != null && close_output_on_exit) {
+					try {
+						output_stream.close();
+					} catch (IOException e) {
+					}
+				}
+			}
+		}
+	}
+
 	/**
 	 * Close stream without throwing exception.
 	 * 
@@ -60,17 +104,32 @@ public class Streams {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public static void pipeIOStream(InputStream inpstr, OutputStream outstr)
-			throws IOException, InterruptedException {
+	public static void pipeIOStream(InputStream input_stream,
+			OutputStream output_stream) throws IOException,
+			InterruptedException {
+		if (input_stream == null)
+			return;
+
 		byte[] buffer = new byte[BuildConfig.BUFFER_SIZE];
 		int count;
-
-		while ((count = inpstr.read(buffer)) != -1) {
-			// Make this reading & writing interrupt-safe
+		while ((count = input_stream.read(buffer)) != -1) {
 			if (Thread.currentThread().isInterrupted())
-				throw new InterruptedException("Streams.pipeIOStream");
-			outstr.write(buffer, 0, count);
+				throw new InterruptedException("Streaming is interrupted.");
+			if (output_stream != null) {
+				output_stream.write(buffer, 0, count);
+				output_stream.flush();
+			}
 		}
+	}
+
+	public static void pipeIOStreamInBackground(InputStream input_stream,
+			OutputStream output_stream, boolean close_input_on_exit,
+			boolean close_output_on_exit) {
+		if (input_stream == null)
+			return;
+		Thread consumingThread = new Thread(new StreamingRunnable(input_stream,
+				output_stream, close_input_on_exit, close_output_on_exit));
+		consumingThread.start();
 	}
 
 	/**
