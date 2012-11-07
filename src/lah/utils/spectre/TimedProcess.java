@@ -18,6 +18,8 @@ public class TimedProcess {
 	/**
 	 * Execute a process with a time out.
 	 * 
+	 * Note: currently, environment is not taken into account.
+	 * 
 	 * @param command
 	 *            Tokenized program and arguments to construct process as in
 	 *            {@link Runtime#exec(String[], String[], File)}
@@ -39,10 +41,16 @@ public class TimedProcess {
 	 * @throws InterruptedException
 	 */
 	public static TimedProcess create(String[] command, String[] environment,
-			File directory, Timer timer, final long timeout)
+			File directory, File stdoutput, Timer timer, final long timeout)
 			throws IOException, InterruptedException {
-		final Process process = Runtime.getRuntime().exec(command, environment,
-				directory);
+		// Process process = Runtime.getRuntime().exec(command, environment,
+		// directory);
+		ProcessBuilder proc_builder = new ProcessBuilder(command);
+		proc_builder.directory(directory);
+		final Process process = proc_builder.start();
+		
+		if (stdoutput != null)
+			proc_builder.redirectOutput(stdoutput);
 
 		if (timer == null)
 			timer = new Timer();
@@ -86,10 +94,10 @@ public class TimedProcess {
 	 * @throws InterruptedException
 	 */
 	public static int execute(String[] command, String[] environment,
-			File directory, Timer timer, final long timeout)
+			File directory, File stdout, Timer timer, final long timeout)
 			throws IOException, InterruptedException {
 		TimedProcess timed_process = create(command, environment, directory,
-				timer, timeout);
+				stdout, timer, timeout);
 		Process process = timed_process.getProcess();
 		TimerTask kill_process_task = timed_process.getProcessKillingTask();
 		try {

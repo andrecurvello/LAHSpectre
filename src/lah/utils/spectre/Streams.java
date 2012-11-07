@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -68,7 +69,6 @@ public class Streams {
 			// Make this reading & writing interrupt-safe
 			if (Thread.currentThread().isInterrupted())
 				throw new InterruptedException("Streams.pipeIOStream");
-
 			outstr.write(buffer, 0, count);
 		}
 	}
@@ -135,17 +135,25 @@ public class Streams {
 	 * @throws InterruptedException
 	 */
 	public static void streamToFile(InputStream inpstr, File out,
-			boolean deleteOnInterruption) throws IOException,
+			boolean deleteOnInterruption, boolean append) throws IOException,
 			InterruptedException {
-		FileOutputStream out_str = new FileOutputStream(out);
+		FileOutputStream out_str = new FileOutputStream(out, append);
 		try {
 			pipeIOStream(inpstr, out_str);
 		} catch (InterruptedException e) {
 			if (deleteOnInterruption)
 				out.delete();
 			throw e;
+		} finally {
+			out_str.close();
 		}
-		out_str.close();
+	}
+
+	public static void writeStringToFile(String content, File output,
+			boolean append) throws IOException {
+		FileWriter writer = new FileWriter(output, append);
+		writer.write(content);
+		writer.close();
 	}
 
 }

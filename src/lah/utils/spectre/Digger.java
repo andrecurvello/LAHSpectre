@@ -119,9 +119,10 @@ public class Digger extends InputStream {
 		while ((entry = tar_stream.getNextEntry()) != null) {
 
 			if (Thread.currentThread().isInterrupted()) {
-				throw new InterruptedException("Interrupted while extracting file.");
+				throw new InterruptedException(
+						"Interrupted while extracting file.");
 			}
-			
+
 			// Locate the entry in the file system
 			File entry_out = new File(relocator.locate(entry.getName()));
 
@@ -133,17 +134,17 @@ public class Digger extends InputStream {
 				entry_out.getParentFile().mkdirs();
 				// And then write the file, delete when interrupted
 				try {
-					Streams.streamToFile(tar_stream, entry_out, true);
+					Streams.streamToFile(tar_stream, entry_out, true, false);
+					num_entries_processed++;
+					if (listener != null)
+						listener.notifyCurrentProgress(num_entries_processed);
 				} catch (InterruptedException e) {
-					throw new InterruptedException("Interrupted while extracting file.");
+					throw new InterruptedException(
+							"Interrupted while extracting file.");
 				} catch (IOException e) {
 					throw new IOException("Cannot write file.");
 				}
 			}
-
-			num_entries_processed++;
-			if (listener != null)
-				listener.notifyCurrentProgress(num_entries_processed);
 		}
 		tar_stream.close();
 	}
