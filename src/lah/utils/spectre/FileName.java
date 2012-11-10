@@ -23,6 +23,22 @@ public class FileName {
 	}
 
 	/**
+	 * Find the file name from the path
+	 * 
+	 * @param file_path
+	 * @param path_sep
+	 * @return
+	 */
+	public static String getName(String file_path, char path_sep) {
+		int last_path_sep = file_path.lastIndexOf(path_sep);
+		if (last_path_sep != -1)
+			return file_path.substring(last_path_sep + 1);
+		// this is the case when file_path actually consist of only the file
+		// name
+		return file_path;
+	}
+
+	/**
 	 * Trim file extension, copied from {@link http
 	 * ://stackoverflow.com/questions
 	 * /941272/how-do-i-trim-a-file-extension-from-a-string-in-java}
