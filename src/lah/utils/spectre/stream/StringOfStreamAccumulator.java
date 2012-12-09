@@ -1,4 +1,4 @@
-package lah.utils.spectre;
+package lah.utils.spectre.stream;
 
 public class StringOfStreamAccumulator implements InputBufferProcessor {
 

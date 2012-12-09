@@ -1,4 +1,4 @@
-package lah.utils.spectre;
+package lah.utils.spectre.interfaces;
 
 /**
  * Interface for general object that consumes resources produced by

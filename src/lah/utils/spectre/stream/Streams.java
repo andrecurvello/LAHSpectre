@@ -1,4 +1,4 @@
-package lah.utils.spectre;
+package lah.utils.spectre.stream;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -9,6 +9,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import lah.utils.spectre.BuildConfig;
 
 public class Streams {
 

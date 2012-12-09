@@ -1,6 +1,10 @@
-package lah.utils.spectre;
+package lah.utils.spectre.stream;
 
 import java.io.InputStream;
+
+import lah.utils.spectre.BuildConfig;
+import lah.utils.spectre.interfaces.ExceptionHandler;
+import lah.utils.spectre.interfaces.ResultListener;
 
 public class InputStreamProcessingThread extends Thread {
 

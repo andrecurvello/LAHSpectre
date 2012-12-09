@@ -1,4 +1,4 @@
-package lah.utils.spectre;
+package lah.utils.spectre.process;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,6 +6,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import lah.utils.spectre.BuildConfig;
+import lah.utils.spectre.CollectionPrinter;
+import lah.utils.spectre.interfaces.ExceptionHandler;
+import lah.utils.spectre.interfaces.ResultListener;
+import lah.utils.spectre.stream.InputBufferProcessor;
+import lah.utils.spectre.stream.InputStreamProcessingThread;
+import lah.utils.spectre.stream.Streams;
 
 /**
  * This class represents a timed {@link Process}. It has analogous functionality
@@ -180,6 +188,9 @@ public class TimedProcess {
 	private TimedProcess(Process proc, TimerTask killer) {
 		process = proc;
 		process_killer = killer;
+	}
+	
+	public TimedProcess() {
 	}
 
 	public TimedProcess(String[] command, File directory, boolean redirectError)

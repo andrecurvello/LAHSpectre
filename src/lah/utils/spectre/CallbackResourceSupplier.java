@@ -1,5 +1,7 @@
 package lah.utils.spectre;
 
+import lah.utils.spectre.interfaces.ResourceListener;
+
 /**
  * This object
  * 
