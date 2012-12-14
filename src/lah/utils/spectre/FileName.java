@@ -3,7 +3,7 @@ package lah.utils.spectre;
 /**
  * Collection of methods to process file name and extension
  * 
- * @author Vu An Hoa
+ * @author L.A.H.
  * 
  */
 public class FileName {

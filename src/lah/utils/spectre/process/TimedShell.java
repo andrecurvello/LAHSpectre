@@ -9,93 +9,76 @@ import lah.utils.spectre.interfaces.ExceptionHandler;
 import lah.utils.spectre.stream.InputBufferProcessor;
 import lah.utils.spectre.stream.InputStreamProcessingThread;
 
-public class TimedShell {
+/**
+ * This class extends {@link TimedProcess} to preserve space.
+ * 
+ * @author L.A.H.
+ * 
+ */
+public class TimedShell extends TimedProcess {
 
 	/**
 	 * Global time out for all process; 0 means NO timeout
 	 */
-	@SuppressWarnings("unused")
 	private long global_time_out = 0;
 
-	private Process current_process;
+	/**
+	 * Global object to handle exceptions
+	 */
+	private final ExceptionHandler global_exception_handler = new ExceptionHandler() {
 
-	private Thread stdout_processing_thread;
+		@Override
+		public void onException(Exception e) {
+			// Simply kill the process if exception is encountered
+			kill();
+		}
 
-	private TimerTask kill_process_task;
+	};
 
+	/**
+	 * Global timer to time out the process
+	 */
 	private Timer process_timer;
 
 	public TimedShell() {
+		super();
 		process_timer = new Timer();
+		process_killer = new TimerTask() {
+
+			@Override
+			public void run() {
+				destroy();
+			}
+
+		};
 	}
 
 	public void setGlobalTimeOut(long timeout) {
 		global_time_out = timeout;
 	}
 
-	public int invoke(String[] command, File directory,
-			InputBufferProcessor processor, long timeout) throws IOException {
-		// Destroy the running process (if any) and create a new one
-		destroyCurrentProcess();
-		current_process = new ProcessBuilder(command).directory(directory)
+	public synchronized int invoke(String[] command, File directory,
+			InputBufferProcessor processor, long timeout) throws IOException,
+			InterruptedException {
+		// Destroy the running process (if any)
+		kill();
+		// And create a new one to run the command
+		process = new ProcessBuilder(command).directory(directory)
 				.redirectErrorStream(true).start();
 
 		// Set up the thread to consume standard output
 		stdout_processing_thread = new InputStreamProcessingThread(
-				current_process.getInputStream(), processor,
-				new ExceptionHandler() {
-
-					@Override
-					public void onException(Exception e) {
-						destroyCurrentProcess();
-					}
-				}, null);
+				process.getInputStream(), processor, global_exception_handler,
+				null);
 		stdout_processing_thread.start();
 
-		// Set up the timer to time-out the process if necessary
-		if (timeout > 0) {
-			kill_process_task = new TimerTask() {
+		// Schedule the timer to time-out the process (if necessary)
+		timeout = (timeout == 0 ? global_time_out : timeout);
+		if (timeout > 0)
+			process_timer.schedule(process_killer, timeout);
 
-				@Override
-				public void run() {
-					destroyCurrentProcess();
-				}
-			};
-			process_timer.schedule(kill_process_task, timeout);
-		}
-
-		// Now wait for result or exception
-		try {
-			int result = current_process.waitFor();
-			destroyCurrentProcess();
-			return result;
-		} catch (InterruptedException e) {
-			destroyCurrentProcess();
-			return -1;
-		}
-	}
-
-	private void destroyCurrentProcess() {
-		if (current_process != null) {
-			current_process.destroy();
-			try {
-				// Wait for the process to be fully killed
-				current_process.waitFor();
-				// Close the associated streams
-				if (current_process.getInputStream() != null)
-					current_process.getInputStream().close();
-				if (current_process.getOutputStream() != null)
-					current_process.getOutputStream().close();
-				if (current_process.getErrorStream() != null)
-					current_process.getErrorStream().close();
-				if (kill_process_task != null)
-					kill_process_task.cancel();
-			} catch (InterruptedException e) {
-				
-			} catch (IOException e) {
-				
-			}
-		}
+		// Now wait for result | exception to be thrown
+		return waitForAndDestroy();
 	}
 
 }

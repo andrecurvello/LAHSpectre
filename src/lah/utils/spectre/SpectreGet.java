@@ -18,7 +18,7 @@ import java.util.concurrent.Future;
  * This class functions as a general purpose network resource retrieval manager.
  * It manages list of download files, support download resume and many more.
  * 
- * @author Vu An Hoa
+ * @author L.A.H.
  * 
  */
 public class SpectreGet {

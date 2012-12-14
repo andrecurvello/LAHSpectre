@@ -1,8 +1,15 @@
 package lah.utils.spectre.stream;
 
+/**
+ * Implementation of {@link InputBufferProcessor} that accumulate the buffer
+ * into {@link StringBuilder}
+ * 
+ * @author L.A.H.
+ * 
+ */
 public class StringOfStreamAccumulator implements InputBufferProcessor {
 
-	StringBuffer result;
+	StringBuilder result;
 
 	@Override
 	public void processBuffer(byte[] buffer, int count) {
@@ -11,7 +18,11 @@ public class StringOfStreamAccumulator implements InputBufferProcessor {
 
 	@Override
 	public void reset() {
-		result = new StringBuffer();
+		result = new StringBuilder();
+	}
+
+	public String getResult() {
+		return (result == null ? null : result.toString());
 	}
 
 }

@@ -5,7 +5,7 @@ import lah.utils.spectre.interfaces.ResourceListener;
 /**
  * This object
  * 
- * @author Vu An Hoa
+ * @author L.A.H.
  * 
  * @param <I>
  *            Type of input

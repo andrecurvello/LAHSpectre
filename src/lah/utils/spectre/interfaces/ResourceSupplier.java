@@ -4,7 +4,7 @@ package lah.utils.spectre.interfaces;
  * Interface for objects that produces resources and call the corresponding
  * listener when it is available for processing.
  * 
- * @author Vu An Hoa
+ * @author L.A.H.
  * 
  * @param <I>
  *            Type of input

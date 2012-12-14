@@ -9,7 +9,7 @@ import java.util.Set;
  * Various static methods to obtain {@link String} representation for
  * collection-kind objects like array, list, map, ...
  * 
- * @author Vu An Hoa
+ * @author L.A.H.
  * 
  */
 public class CollectionPrinter {

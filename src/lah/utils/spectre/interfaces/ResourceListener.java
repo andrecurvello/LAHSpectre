@@ -4,7 +4,7 @@ package lah.utils.spectre.interfaces;
  * Interface for general object that consumes resources produced by
  * {@link ResourceSupplier}.
  * 
- * @author Vu An Hoa
+ * @author L.A.H.
  * 
  * @param <O>
  *            Type of result
