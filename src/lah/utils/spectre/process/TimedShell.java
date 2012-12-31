@@ -69,6 +69,7 @@ public class TimedShell {
 			public void run() {
 				if (waiting_thread != null)
 					waiting_thread.interrupt();
+				Thread.currentThread().interrupt();
 			}
 
 		};

@@ -133,6 +133,8 @@ public class Streams {
 		if (stream_processor != null)
 			stream_processor.reset();
 		while ((count = stream.read(buffer)) != -1) {
+			if (Thread.currentThread().isInterrupted())
+				break;
 			if (stream_processor != null)
 				stream_processor.processBuffer(buffer, count);
 		}
