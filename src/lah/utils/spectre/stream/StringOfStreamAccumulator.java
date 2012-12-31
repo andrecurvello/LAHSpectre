@@ -11,6 +11,10 @@ public class StringOfStreamAccumulator implements InputBufferProcessor {
 
 	StringBuilder result;
 
+	public String getResult() {
+		return (result == null ? null : result.toString());
+	}
+
 	@Override
 	public void processBuffer(byte[] buffer, int count) {
 		result.append(new String(buffer, 0, count));
@@ -19,10 +23,6 @@ public class StringOfStreamAccumulator implements InputBufferProcessor {
 	@Override
 	public void reset() {
 		result = new StringBuilder();
-	}
-
-	public String getResult() {
-		return (result == null ? null : result.toString());
 	}
 
 }

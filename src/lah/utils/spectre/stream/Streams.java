@@ -68,11 +68,6 @@ public class Streams {
 		try {
 			inp_stream.close();
 		} catch (IOException e) {
-			if (BuildConfig.DEBUG)
-				System.out
-						.println("TeX.closeInputStream : Error closing input stream "
-								+ inp_stream);
-			e.printStackTrace();
 		}
 	}
 
@@ -86,11 +81,6 @@ public class Streams {
 		try {
 			out_stream.close();
 		} catch (IOException e) {
-			if (BuildConfig.DEBUG)
-				System.out
-						.println("TeX.closeInputStream : Error closing input stream "
-								+ out_stream);
-			e.printStackTrace();
 		}
 	}
 
@@ -132,6 +122,20 @@ public class Streams {
 		Thread consumingThread = new Thread(new StreamingRunnable(input_stream,
 				output_stream, close_input_on_exit, close_output_on_exit));
 		consumingThread.start();
+	}
+
+	public static void processStream(InputStream stream,
+			InputBufferProcessor stream_processor) throws Exception {
+		if (stream == null)
+			return;
+		int count;
+		byte[] buffer = new byte[BuildConfig.BUFFER_SIZE];
+		if (stream_processor != null)
+			stream_processor.reset();
+		while ((count = stream.read(buffer)) != -1) {
+			if (stream_processor != null)
+				stream_processor.processBuffer(buffer, count);
+		}
 	}
 
 	/**

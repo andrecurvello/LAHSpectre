@@ -45,7 +45,7 @@ public class InputStreamProcessingThread extends Thread {
 			if (result_listener != null)
 				result_listener.onResultObtained(null);
 		} catch (Exception e) {
-			e.printStackTrace(System.out);
+			// e.printStackTrace(System.out);
 			if (exception_handler != null)
 				exception_handler.onException(e);
 		}

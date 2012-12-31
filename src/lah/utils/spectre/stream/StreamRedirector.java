@@ -1,5 +1,8 @@
 package lah.utils.spectre.stream;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.OutputStream;
 
 public class StreamRedirector implements InputBufferProcessor {
@@ -22,16 +25,20 @@ public class StreamRedirector implements InputBufferProcessor {
 		}
 	};
 
-	private OutputStream output_stream;
+	private OutputStream out_stream;
+
+	public StreamRedirector(File output_file) throws FileNotFoundException {
+		this(new FileOutputStream(output_file));
+	}
 
 	public StreamRedirector(OutputStream output_stream) {
-		this.output_stream = output_stream;
+		out_stream = output_stream;
 	}
 
 	@Override
 	public void processBuffer(byte[] buffer, int count) throws Exception {
-		if (output_stream != null)
-			output_stream.write(buffer, 0, count);
+		if (out_stream != null)
+			out_stream.write(buffer, 0, count);
 	}
 
 	@Override
