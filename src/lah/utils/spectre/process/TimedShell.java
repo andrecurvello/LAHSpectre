@@ -3,10 +3,17 @@ package lah.utils.spectre.process;
 import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeoutException;
 
 import lah.utils.spectre.stream.InputBufferProcessor;
 import lah.utils.spectre.stream.Streams;
 
+/**
+ * Thread to wait for an external process to finish execution
+ * 
+ * @author L.A.H.
+ * 
+ */
 class ProcessWaitingThread extends Thread {
 
 	private final Process proc;
@@ -84,8 +91,11 @@ public class TimedShell {
 		}
 	}
 
+	boolean is_timeout;
+
 	public synchronized int fork(String[] command, File directory,
 			InputBufferProcessor processor, long timeout) throws Exception {
+		is_timeout = false;
 		process = new ProcessBuilder(command).directory(directory)
 				.redirectErrorStream(true).start();
 
@@ -97,6 +107,7 @@ public class TimedShell {
 
 				@Override
 				public void run() {
+					is_timeout = true;
 					if (waiting_thread != null)
 						waiting_thread.interrupt();
 				}
@@ -124,7 +135,13 @@ public class TimedShell {
 			waiting_thread.join();
 
 			// do the finally and then return the exit value
-			return process.exitValue();
+			if (!is_timeout)
+				return process.exitValue();
+			else
+				throw new TimeoutException("Time-out while executing "
+						+ command[0]);
+		} catch (TimeoutException e) {
+			throw e;
 		} catch (Exception e) {
 			// exception while processing stdout, interrupt the waiting thread
 			// so that it kills the running process; and then we wait for kill
