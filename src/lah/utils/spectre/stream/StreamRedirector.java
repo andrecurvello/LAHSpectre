@@ -27,8 +27,9 @@ public class StreamRedirector implements InputBufferProcessor {
 
 	private OutputStream out_stream;
 
-	public StreamRedirector(File output_file) throws FileNotFoundException {
-		this(new FileOutputStream(output_file));
+	public StreamRedirector(File output_file, boolean append)
+			throws FileNotFoundException {
+		this(new FileOutputStream(output_file, append));
 	}
 
 	public StreamRedirector(OutputStream output_stream) {
@@ -37,8 +38,10 @@ public class StreamRedirector implements InputBufferProcessor {
 
 	@Override
 	public void processBuffer(byte[] buffer, int count) throws Exception {
-		if (out_stream != null)
+		if (out_stream != null) {
 			out_stream.write(buffer, 0, count);
+			out_stream.flush();
+		}
 	}
 
 	@Override
