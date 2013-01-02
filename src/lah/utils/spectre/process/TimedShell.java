@@ -1,50 +1,13 @@
 package lah.utils.spectre.process;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeoutException;
 
-import lah.utils.spectre.stream.InputBufferProcessor;
+import lah.utils.spectre.stream.IBufferProcessor;
 import lah.utils.spectre.stream.Streams;
-
-/**
- * Thread to wait for an external process to finish execution
- * 
- * @author L.A.H.
- * 
- */
-class ProcessWaitingThread extends Thread {
-
-	private final Process proc;
-
-	public ProcessWaitingThread(Process process) {
-		proc = process;
-	}
-
-	@Override
-	public void run() {
-		try {
-			if (proc != null)
-				proc.waitFor();
-		} catch (InterruptedException e) {
-			// how to mark exception?
-		} finally {
-			// Kill and wait for the process to be really killed
-			// in any situation: when the process terminates naturally
-			// or when this waiting thread is interrupted
-			if (proc != null) {
-				try {
-					proc.destroy();
-					proc.waitFor();
-				} catch (Exception e) {
-					e.printStackTrace(System.out);
-				}
-			}
-		}
-	}
-
-}
 
 /**
  * Shell with command time-out and standard output processing
@@ -54,111 +17,141 @@ class ProcessWaitingThread extends Thread {
  */
 public class TimedShell {
 
-	private Process process;
+	private class ProcessKillingTimerTask extends TimerTask {
 
-	private TimerTask process_killer;
+		@Override
+		public void run() {
+			// Set time out flag
+			is_timeout = true;
 
-	private final Timer process_timer = new Timer();
+			// And destroy the running process; assuming that once the
+			// process is destroyed, its standard output reaches
+			// end-of-file.
+			if (process != null)
+				process.destroy();
 
-	private ProcessWaitingThread waiting_thread;
-
-	private void closeIOStreams() {
-		if (process == null)
-			return;
-		// Close stdout
-		try {
-			// System.out.print("Close stdout ... ");
-			process.getInputStream().close();
-			// System.out.println("done!");
-		} catch (Exception e) {
-			e.printStackTrace();
+			// Note: must not close streams here because we might still be
+			// processing the standard output; simply destroy the process so
+			// that the stream is EOF, the processing exits naturally.
 		}
-		// Close stdin
-		try {
-			// System.out.print("Close stdin ... ");
-			process.getOutputStream().close();
-			// System.out.println("done!");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		// Close stderr
-		try {
-			// System.out.print("Close stderr ... ");
-			process.getErrorStream().close();
-			// System.out.println("done!");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+
 	}
 
-	boolean is_timeout;
+	/**
+	 * Flag to indicate if the process exceeds its time out limit
+	 */
+	private boolean is_timeout;
 
+	/**
+	 * Current executing process
+	 */
+	private Process process;
+
+	/**
+	 * {@link TimerTask} to kill the running process when time out is reached
+	 */
+	private TimerTask process_killer;
+
+	/**
+	 * Global timer to timeout the external process
+	 */
+	private final Timer process_timer = new Timer();
+
+	/**
+	 * Execute the command with {@literal null} stdout processor and no time out
+	 * 
+	 * @param command
+	 *            the command to execute
+	 * @param directory
+	 *            the working directory to run
+	 * @return exit value of the command
+	 * @throws Exception
+	 *             should be either {@link IOException} or
+	 *             {@link TimeoutException}
+	 */
+	public int fork(String[] command, File directory) throws Exception {
+		return fork(command, directory, null, 0);
+	}
+
+	/**
+	 * Fork a new process to execute a command. This method is synchronized and
+	 * waiting for standard output so it is blocking.
+	 * 
+	 * @param command
+	 *            a command to run
+	 * @param directory
+	 *            the working directory to run the command
+	 * @param stdout_processor
+	 *            object to process the standard output, if this input is
+	 *            {@literal null}, the output is simply ignored (the effect is
+	 *            similar to sending to /dev/null)
+	 * @param timeout
+	 *            maximum allowable time for the process to execute if greater
+	 *            than 0; input 0 means no timing or unlimited allowance
+	 * @return the exit value of the executed command
+	 * @throws Exception
+	 *             {@link TimeoutException} if the timeout is reached and the
+	 *             process has not finished; or any exception raised by
+	 *             <b>stdout_processor</b> while processing the standard output.
+	 */
 	public synchronized int fork(String[] command, File directory,
-			InputBufferProcessor processor, long timeout) throws Exception {
+			IBufferProcessor stdout_processor, long timeout)
+			throws Exception {
 		is_timeout = false;
 		process = new ProcessBuilder(command).directory(directory)
 				.redirectErrorStream(true).start();
 
 		// Schedule the timer to time-out the process (if necessary)
+		// Note that we have to recreate the TimerTask again and again since
+		// TimerTask can only be scheduled ONCE or PERIODICALLY!
 		if (timeout > 0) {
-			// Have to recreate the TimerTask again and again since TimerTask
-			// can only be scheduled ONCE!
-			process_killer = new TimerTask() {
-
-				@Override
-				public void run() {
-					is_timeout = true;
-					if (waiting_thread != null)
-						waiting_thread.interrupt();
-				}
-
-			};
+			process_killer = new ProcessKillingTimerTask();
 			process_timer.schedule(process_killer, timeout);
 		}
 
-		// Fork a thread to wait for the process to finish WHILE this thread
-		// consumes the output: cannot use waitFor() here AND the timer is
-		// running another thread timing out the execution.
-		waiting_thread = new ProcessWaitingThread(process);
-		waiting_thread.start();
-
 		try {
-			// process the stdout, note that in case of time out, the waiting
-			// thread is interrupted and so the process be abruptly killed and
-			// we assume that when the process is killed, EOF on stdout is
-			// reached so that this eventually terminates (when timeout > 0).
-			Streams.processStream(process.getInputStream(), processor);
+			// Process the standard output; this call is blocking until
+			// (i) the process exits NATURALLY;
+			// (ii) the process is DESTROYED by the process_killer TimerTask;
+			// (iii) the stdout consuming thread is interrupted.
+			Streams.processStream(process.getInputStream(), stdout_processor);
 
-			// finish processing stdout and stdout is closed so wait for the
-			// waiting thread to finish destruction of the process object before
-			// returning its exit value
-			waiting_thread.join();
-
-			// do the finally and then return the exit value
-			if (!is_timeout)
-				return process.exitValue();
-			else
-				throw new TimeoutException("Time-out while executing "
+			// Time out occurs, raise exception after finally-clause is done!
+			if (is_timeout)
+				throw new TimeoutException("Timeout while executing "
 						+ command[0]);
-		} catch (TimeoutException e) {
-			throw e;
-		} catch (Exception e) {
-			// exception while processing stdout, interrupt the waiting thread
-			// so that it kills the running process; and then we wait for kill
-			// to finish
-			waiting_thread.interrupt();
-			waiting_thread.join();
 
-			// do finally before throwing exception to caller
-			throw e;
+			// Note: the finally is executed so that the process definitely
+			// exits and so we can safely return the exit value
+			return process.exitValue();
 		} finally {
-			// before return or raising exception, cancel the scheduled killing
-			if (process_killer != null)
+			// Cancel the scheduled killing to make sure that the next
+			// command is not accidentally killed
+			if (process_killer != null) {
 				process_killer.cancel();
-			process_killer = null;
+				process_killer = null;
+			}
+			// Destroy the process if case (iii) happens or exception occurs
+			// wait for the process to be completely destroyed and close all
+			// resources as well
+			kill();
+		}
+	}
 
-			// close all open resources
-			closeIOStreams();
+	/**
+	 * Destroy the process, wait for it to be completely destroyed and close all
+	 * resources (stdin, stdout, stderr streams).
+	 */
+	private void kill() {
+		if (process != null) {
+			process.destroy();
+			try {
+				process.waitFor();
+			} catch (Exception e) {
+			}
+			Streams.closeStream(process.getInputStream());
+			Streams.closeStream(process.getOutputStream());
+			Streams.closeStream(process.getErrorStream());
 		}
 	}
 

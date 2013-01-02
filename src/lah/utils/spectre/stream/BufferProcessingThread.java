@@ -6,7 +6,7 @@ import lah.utils.spectre.BuildConfig;
 import lah.utils.spectre.interfaces.ExceptionHandler;
 import lah.utils.spectre.interfaces.ResultListener;
 
-public class InputStreamProcessingThread extends Thread {
+public class BufferProcessingThread extends Thread {
 
 	private byte[] buffer;
 
@@ -16,10 +16,10 @@ public class InputStreamProcessingThread extends Thread {
 
 	private ResultListener<Void> result_listener;
 
-	private InputBufferProcessor stream_processor;
+	private IBufferProcessor stream_processor;
 
-	public InputStreamProcessingThread(InputStream inp_stream,
-			InputBufferProcessor processor, ExceptionHandler exc_handler,
+	public BufferProcessingThread(InputStream inp_stream,
+			IBufferProcessor processor, ExceptionHandler exc_handler,
 			ResultListener<Void> res_handler) {
 		input_stream = inp_stream;
 		stream_processor = processor;

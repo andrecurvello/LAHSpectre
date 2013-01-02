@@ -7,8 +7,8 @@ import java.util.TimerTask;
 
 import lah.utils.spectre.interfaces.ExceptionHandler;
 import lah.utils.spectre.interfaces.ResultListener;
-import lah.utils.spectre.stream.InputBufferProcessor;
-import lah.utils.spectre.stream.InputStreamProcessingThread;
+import lah.utils.spectre.stream.IBufferProcessor;
+import lah.utils.spectre.stream.BufferProcessingThread;
 
 /**
  * This class is an extension of the standard {@link Process} with the extra
@@ -51,7 +51,7 @@ public class TimedProcess {
 	}
 
 	public TimedProcess(String[] command, File working_directory,
-			boolean redirect_stderr, InputBufferProcessor processor,
+			boolean redirect_stderr, IBufferProcessor processor,
 			ExceptionHandler stdout_processing_exception_handler, long timeout)
 			throws IOException {
 		this(command, working_directory, redirect_stderr);
@@ -60,7 +60,7 @@ public class TimedProcess {
 	}
 
 	public TimedProcess(String[] command, File directory,
-			boolean redirectError, InputBufferProcessor processor, long timeout)
+			boolean redirectError, IBufferProcessor processor, long timeout)
 			throws IOException {
 		this(command, directory, redirectError);
 		setStdOutHandler(processor);
@@ -133,15 +133,15 @@ public class TimedProcess {
 		}
 	}
 
-	public void setStdOutHandler(InputBufferProcessor processor) {
+	public void setStdOutHandler(IBufferProcessor processor) {
 		setStdOutHandler(processor, null, null);
 	}
 
-	public void setStdOutHandler(InputBufferProcessor processor,
+	public void setStdOutHandler(IBufferProcessor processor,
 			ExceptionHandler exception_handler,
 			ResultListener<Void> result_listener) {
 		if (process != null) {
-			stdout_processing_thread = new InputStreamProcessingThread(
+			stdout_processing_thread = new BufferProcessingThread(
 					process.getInputStream(), processor, exception_handler,
 					result_listener);
 			stdout_processing_thread.start();

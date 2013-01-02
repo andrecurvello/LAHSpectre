@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import lah.utils.spectre.interfaces.IFileEntry;
 import lah.utils.spectre.stream.Streams;
 
 import org.kamranzafar.jtar.TarEntry;
@@ -186,7 +187,7 @@ public class Digger extends InputStream {
 		input_stream.close();
 	}
 
-	public FileEntry getNextEntry() {
+	public IFileEntry getNextEntry() {
 		return null;
 	}
 
@@ -235,7 +236,7 @@ public class Digger extends InputStream {
 	 */
 	public void unarchiveToFileSystem(FileRelocator relocator)
 			throws IOException, InterruptedException {
-		FileEntry entry;
+		IFileEntry entry;
 		while ((entry = getNextEntry()) != null) {
 
 			if (Thread.currentThread().isInterrupted())

@@ -12,67 +12,29 @@ import java.io.OutputStream;
 
 import lah.utils.spectre.BuildConfig;
 
+/**
+ * Various static (Input|Output)Stream utilities
+ * 
+ * @author L.A.H.
+ * 
+ */
 public class Streams {
 
-	private static class StreamingRunnable implements Runnable {
-
-		private boolean close_input_on_exit;
-
-		private boolean close_output_on_exit;
-
-		private InputStream input_stream;
-
-		private OutputStream output_stream;
-
-		public StreamingRunnable(InputStream inpstr, OutputStream outstr,
-				boolean closeinp, boolean closeout) {
-			input_stream = inpstr;
-			output_stream = outstr;
-			close_input_on_exit = closeinp;
-			close_output_on_exit = closeout;
-		}
-
-		@Override
-		public void run() {
-			try {
-				pipeIOStream(input_stream, output_stream);
-			} catch (IOException e) {
-				// Ignore exception
-			} catch (InterruptedException e) {
-				// Ignore exception
-			} finally {
-				// Close streams if applicable
-				if (input_stream != null && close_input_on_exit) {
-					try {
-						input_stream.close();
-					} catch (IOException e) {
-					}
-				}
-				if (output_stream != null && close_output_on_exit) {
-					try {
-						output_stream.close();
-					} catch (IOException e) {
-					}
-				}
-			}
-		}
-	}
-
 	/**
-	 * Close stream without throwing exception.
+	 * Close {@link InputStream} while ignoring any exception raised
 	 * 
-	 * @param inp_stream
+	 * @param input_stream
 	 *            Input stream to close
 	 */
-	public static void closeStream(InputStream inp_stream) {
+	public static void closeStream(InputStream input_stream) {
 		try {
-			inp_stream.close();
+			input_stream.close();
 		} catch (IOException e) {
 		}
 	}
 
 	/**
-	 * Close stream without throwing exception.
+	 * Close {@link OutputStream} while ignoring any exception raised
 	 * 
 	 * @param out_stream
 	 *            Output stream to close
@@ -114,18 +76,17 @@ public class Streams {
 		}
 	}
 
-	public static void pipeIOStreamInBackground(InputStream input_stream,
-			OutputStream output_stream, boolean close_input_on_exit,
-			boolean close_output_on_exit) {
-		if (input_stream == null)
-			return;
-		Thread consumingThread = new Thread(new StreamingRunnable(input_stream,
-				output_stream, close_input_on_exit, close_output_on_exit));
-		consumingThread.start();
-	}
-
+	/**
+	 * Higher-order method to process a stream; note that the stream is not
+	 * closed at the end of the processing! This method is blocking until the
+	 * stream is fully processed or the calling thread is interrupted.
+	 * 
+	 * @param stream
+	 * @param stream_processor
+	 * @throws Exception
+	 */
 	public static void processStream(InputStream stream,
-			InputBufferProcessor stream_processor) throws Exception {
+			IBufferProcessor stream_processor) throws Exception {
 		if (stream == null)
 			return;
 		int count;
@@ -216,6 +177,17 @@ public class Streams {
 		}
 	}
 
+	/**
+	 * Write or append a string to a file
+	 * 
+	 * @param content
+	 *            string to write/append
+	 * @param output
+	 *            {@link File} to write or append
+	 * @param append
+	 *            {@literal true} to append the file instead of overwriting
+	 * @throws IOException
+	 */
 	public static void writeStringToFile(String content, File output,
 			boolean append) throws IOException {
 		FileWriter writer = new FileWriter(output, append);

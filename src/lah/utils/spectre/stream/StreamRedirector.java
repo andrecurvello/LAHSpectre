@@ -5,9 +5,18 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
-public class StreamRedirector implements InputBufferProcessor {
+/**
+ * Process a byte[] buffer by redirect it to an output stream
+ * 
+ * @author L.A.H.
+ * 
+ */
+public class StreamRedirector implements IBufferProcessor {
 
-	public static final InputBufferProcessor NULL = new InputBufferProcessor() {
+	/**
+	 * An {@link IBufferProcessor} that simply ignore the buffer
+	 */
+	public static final IBufferProcessor NULL = new IBufferProcessor() {
 		public void processBuffer(byte[] buffer, int count) throws Exception {
 			// Do nothing, just ignore the output
 		}
@@ -16,7 +25,11 @@ public class StreamRedirector implements InputBufferProcessor {
 		}
 	};
 
-	public static final InputBufferProcessor STDOUT = new InputBufferProcessor() {
+	/**
+	 * An {@link IBufferProcessor} that simply write the buffer to standard
+	 * output
+	 */
+	public static final IBufferProcessor STDOUT = new IBufferProcessor() {
 		public void processBuffer(byte[] buffer, int count) throws Exception {
 			System.out.println(new String(buffer, 0, count));
 		}
@@ -25,13 +38,28 @@ public class StreamRedirector implements InputBufferProcessor {
 		}
 	};
 
+	/**
+	 * Output stream to redirect the buffer to
+	 */
 	private OutputStream out_stream;
 
+	/**
+	 * Construct an instance that redirect the result to a file
+	 * 
+	 * @param output_file
+	 * @param append
+	 * @throws FileNotFoundException
+	 */
 	public StreamRedirector(File output_file, boolean append)
 			throws FileNotFoundException {
 		this(new FileOutputStream(output_file, append));
 	}
 
+	/**
+	 * Construct an instance that redirect buffer to a specified stream
+	 * 
+	 * @param output_stream
+	 */
 	public StreamRedirector(OutputStream output_stream) {
 		out_stream = output_stream;
 	}

@@ -1,15 +1,16 @@
 package lah.utils.spectre.stream;
 
 /**
- * Implementation of {@link InputBufferProcessor} that accumulate the buffer
- * into {@link StringBuilder}
+ * Implementation of {@link IBufferProcessor} that accumulate the buffers
+ * into a single {@link StringBuilder}. This is handy to collect standard output
+ * of an external process.
  * 
  * @author L.A.H.
  * 
  */
-public class StringOfStreamAccumulator implements InputBufferProcessor {
+public class StringAccumulator implements IBufferProcessor {
 
-	StringBuilder result;
+	private StringBuilder result;
 
 	public String getResult() {
 		return (result == null ? null : result.toString());

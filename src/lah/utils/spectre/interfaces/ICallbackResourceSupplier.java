@@ -1,6 +1,5 @@
-package lah.utils.spectre;
+package lah.utils.spectre.interfaces;
 
-import lah.utils.spectre.interfaces.ResourceListener;
 
 /**
  * This object
@@ -14,7 +13,7 @@ import lah.utils.spectre.interfaces.ResourceListener;
  * @param <P>
  *            Type of progress report
  */
-public interface CallbackResourceSupplier<I, O, P> {
+public interface ICallbackResourceSupplier<I, O, P> {
 
 	/**
 	 * Start obtaining the resource, post the progress and notify the final
