@@ -38,6 +38,11 @@ public class TimedShell {
 	}
 
 	/**
+	 * Exit value of the external process
+	 */
+	private int exit_value;
+
+	/**
 	 * Flag to indicate if the process exceeds its time out limit
 	 */
 	private boolean is_timeout;
@@ -95,11 +100,11 @@ public class TimedShell {
 	 *             <b>stdout_processor</b> while processing the standard output.
 	 */
 	public synchronized int fork(String[] command, File directory,
-			IBufferProcessor stdout_processor, long timeout)
-			throws Exception {
+			IBufferProcessor stdout_processor, long timeout) throws Exception {
 		is_timeout = false;
 		process = new ProcessBuilder(command).directory(directory)
 				.redirectErrorStream(true).start();
+		exit_value = -1;
 
 		// Schedule the timer to time-out the process (if necessary)
 		// Note that we have to recreate the TimerTask again and again since
@@ -123,7 +128,7 @@ public class TimedShell {
 
 			// Note: the finally is executed so that the process definitely
 			// exits and so we can safely return the exit value
-			return process.exitValue();
+			return exit_value;
 		} finally {
 			// Cancel the scheduled killing to make sure that the next
 			// command is not accidentally killed
@@ -131,6 +136,7 @@ public class TimedShell {
 				process_killer.cancel();
 				process_killer = null;
 			}
+
 			// Destroy the process if case (iii) happens or exception occurs
 			// wait for the process to be completely destroyed and close all
 			// resources as well
@@ -146,8 +152,10 @@ public class TimedShell {
 		if (process != null) {
 			process.destroy();
 			try {
-				process.waitFor();
+				exit_value = process.waitFor();
 			} catch (Exception e) {
+				// Note that exit_value is not modified if exception occurs
+				// in which case, it retains value dummy value -1
 			}
 			Streams.closeStream(process.getInputStream());
 			Streams.closeStream(process.getOutputStream());
