@@ -1,4 +1,4 @@
-package lah.utils.spectre;
+package lah.spectre;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

@@ -1,4 +1,4 @@
-package lah.utils.spectre.interfaces;
+package lah.spectre.interfaces;
 
 /**
  * Interface for objects that produces resources and call the corresponding
@@ -11,7 +11,7 @@ package lah.utils.spectre.interfaces;
  * @param <E>
  *            Type of output
  */
-public interface ResourceSupplier<I, O> {
+public interface IResourceSupplier<I, O> {
 
 	/**
 	 * Compute the requested resource

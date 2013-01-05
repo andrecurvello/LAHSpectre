@@ -1,4 +1,4 @@
-package lah.utils.spectre.stream;
+package lah.spectre.stream;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import lah.utils.spectre.BuildConfig;
+import lah.spectre.BuildConfig;
 
 /**
  * Various static (Input|Output)Stream utilities

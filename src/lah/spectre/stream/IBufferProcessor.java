@@ -1,4 +1,4 @@
-package lah.utils.spectre.stream;
+package lah.spectre.stream;
 
 /**
  * Interface for byte[] buffer processing classes; concrete implementations are

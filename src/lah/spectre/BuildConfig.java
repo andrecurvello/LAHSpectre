@@ -1,4 +1,4 @@
-package lah.utils.spectre;
+package lah.spectre;
 
 public class BuildConfig {
 

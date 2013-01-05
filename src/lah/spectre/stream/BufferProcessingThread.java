@@ -1,26 +1,26 @@
-package lah.utils.spectre.stream;
+package lah.spectre.stream;
 
 import java.io.InputStream;
 
-import lah.utils.spectre.BuildConfig;
-import lah.utils.spectre.interfaces.ExceptionHandler;
-import lah.utils.spectre.interfaces.ResultListener;
+import lah.spectre.BuildConfig;
+import lah.spectre.interfaces.IExceptionHandler;
+import lah.spectre.interfaces.IResultListener;
 
 public class BufferProcessingThread extends Thread {
 
 	private byte[] buffer;
 
-	private ExceptionHandler exception_handler;
+	private IExceptionHandler exception_handler;
 
 	private InputStream input_stream;
 
-	private ResultListener<Void> result_listener;
+	private IResultListener<Void> result_listener;
 
 	private IBufferProcessor stream_processor;
 
 	public BufferProcessingThread(InputStream inp_stream,
-			IBufferProcessor processor, ExceptionHandler exc_handler,
-			ResultListener<Void> res_handler) {
+			IBufferProcessor processor, IExceptionHandler exc_handler,
+			IResultListener<Void> res_handler) {
 		input_stream = inp_stream;
 		stream_processor = processor;
 		exception_handler = exc_handler;

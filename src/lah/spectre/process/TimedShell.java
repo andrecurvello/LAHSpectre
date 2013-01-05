@@ -1,4 +1,4 @@
-package lah.utils.spectre.process;
+package lah.spectre.process;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,8 +6,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeoutException;
 
-import lah.utils.spectre.stream.IBufferProcessor;
-import lah.utils.spectre.stream.Streams;
+import lah.spectre.stream.IBufferProcessor;
+import lah.spectre.stream.Streams;
 
 /**
  * Shell with command time-out and standard output processing
@@ -17,6 +17,13 @@ import lah.utils.spectre.stream.Streams;
  */
 public class TimedShell {
 
+	/**
+	 * Extension of {@link TimerTask} that will kill the currently executing
+	 * process running in background
+	 * 
+	 * @author L.A.H.
+	 * 
+	 */
 	private class ProcessKillingTimerTask extends TimerTask {
 
 		@Override

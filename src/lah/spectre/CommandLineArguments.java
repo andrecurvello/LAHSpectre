@@ -1,4 +1,4 @@
-package lah.utils.spectre;
+package lah.spectre;
 
 import java.util.Map;
 import java.util.TreeMap;

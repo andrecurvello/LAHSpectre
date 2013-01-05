@@ -1,4 +1,4 @@
-package lah.utils.spectre.stream;
+package lah.spectre.stream;
 
 /**
  * Implementation of {@link IBufferProcessor} that accumulate the buffers

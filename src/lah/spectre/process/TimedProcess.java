@@ -1,14 +1,14 @@
-package lah.utils.spectre.process;
+package lah.spectre.process;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import lah.utils.spectre.interfaces.ExceptionHandler;
-import lah.utils.spectre.interfaces.ResultListener;
-import lah.utils.spectre.stream.IBufferProcessor;
-import lah.utils.spectre.stream.BufferProcessingThread;
+import lah.spectre.interfaces.IExceptionHandler;
+import lah.spectre.interfaces.IResultListener;
+import lah.spectre.stream.BufferProcessingThread;
+import lah.spectre.stream.IBufferProcessor;
 
 /**
  * This class is an extension of the standard {@link Process} with the extra
@@ -52,7 +52,7 @@ public class TimedProcess {
 
 	public TimedProcess(String[] command, File working_directory,
 			boolean redirect_stderr, IBufferProcessor processor,
-			ExceptionHandler stdout_processing_exception_handler, long timeout)
+			IExceptionHandler stdout_processing_exception_handler, long timeout)
 			throws IOException {
 		this(command, working_directory, redirect_stderr);
 		setStdOutHandler(processor, stdout_processing_exception_handler, null);
@@ -138,8 +138,8 @@ public class TimedProcess {
 	}
 
 	public void setStdOutHandler(IBufferProcessor processor,
-			ExceptionHandler exception_handler,
-			ResultListener<Void> result_listener) {
+			IExceptionHandler exception_handler,
+			IResultListener<Void> result_listener) {
 		if (process != null) {
 			stdout_processing_thread = new BufferProcessingThread(
 					process.getInputStream(), processor, exception_handler,

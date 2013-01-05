@@ -1,4 +1,4 @@
-package lah.utils.spectre;
+package lah.spectre;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -6,8 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import lah.utils.spectre.interfaces.IFileEntry;
-import lah.utils.spectre.stream.Streams;
+import lah.spectre.interfaces.IFileEntry;
+import lah.spectre.stream.Streams;
 
 import org.kamranzafar.jtar.TarEntry;
 import org.kamranzafar.jtar.TarInputStream;

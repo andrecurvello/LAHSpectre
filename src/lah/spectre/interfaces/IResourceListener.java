@@ -1,8 +1,8 @@
-package lah.utils.spectre.interfaces;
+package lah.spectre.interfaces;
 
 /**
  * Interface for general object that consumes resources produced by
- * {@link ResourceSupplier}.
+ * {@link IResourceSupplier}.
  * 
  * @author L.A.H.
  * 
@@ -11,7 +11,7 @@ package lah.utils.spectre.interfaces;
  * @param <P>
  *            Type of progress report
  */
-public interface ResourceListener<O, P> {
+public interface IResourceListener<O, P> {
 
 	void onResourceProgress(P progress);
 

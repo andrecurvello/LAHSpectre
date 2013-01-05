@@ -1,4 +1,4 @@
-package lah.utils.spectre;
+package lah.spectre;
 
 /**
  * Collection of methods to process file name and extension

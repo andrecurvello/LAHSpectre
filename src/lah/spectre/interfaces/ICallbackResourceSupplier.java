@@ -1,4 +1,4 @@
-package lah.utils.spectre.interfaces;
+package lah.spectre.interfaces;
 
 
 /**
@@ -22,6 +22,6 @@ public interface ICallbackResourceSupplier<I, O, P> {
 	 * @param args
 	 * @param listener
 	 */
-	void getResource(I args, ResourceListener<O, P> listener);
+	void getResource(I args, IResourceListener<O, P> listener);
 
 }
