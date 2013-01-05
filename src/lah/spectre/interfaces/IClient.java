@@ -13,14 +13,14 @@ package lah.spectre.interfaces;
  * @param <S>
  *            Type for server
  */
-public interface IServerListener<S> {
+public interface IClient<S> {
 
 	/**
-	 * Invoke by the server producing object when the server is fully
-	 * initialized and is ready to render service (handle requests).
+	 * Invoke by the server factory object when a server is ready to render
+	 * service (handle requests) to notify the waiting client
 	 * 
 	 * @param server
 	 */
-	void onServerInitialized(S server);
+	void onServerReady(S server);
 
 }
