@@ -1,6 +1,5 @@
 package lah.spectre.interfaces;
 
-
 /**
  * This object
  * 
