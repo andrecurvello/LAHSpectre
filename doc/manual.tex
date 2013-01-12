@@ -1,0 +1,68 @@
+\documentclass{beamer}
+
+\title{LAHSpectre Utilities Collection}
+\author{L.A.H.}
+
+\setbeamertemplate{enumerate item}{(\arabic{enumi})}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}[fragile]{API Content}
+\begin{itemize}
+\item Process management
+\begin{itemize}
+\item \verb/TimedProcess/: single process with time out
+\item \verb/TimedShell/: shell emulator (one--way communication) with process time out and standard output processing
+\end{itemize}
+\item I/O streams: provide static methods to
+\begin{itemize}
+\item Read \verb/InputStream/ and dump to \verb/OutputStream/
+\item Write a string to a file
+\item Higher order method to process a stream
+\item Close streams ignoring \verb/Exception/
+\item And so on
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{API Content}
+\begin{itemize}
+\item Command line argument parsing
+\item Common interface
+\begin{itemize}
+\item \verb/IResult/ for progressive result with exception wrapping 
+\item \verb/IServerListener/ for class that waits for a server to be ready for service
+\item And many more
+\end{itemize}
+\item File download, extract TAR archive, decompress XZ files, extract information from file name, ...
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Timed Shell}
+Two simple methods:
+\begin{itemize}
+\item \verb/fork(String[] command, File directory,/ \verb/IBufferProcessor stdout_processor, long timeout)/: execute command with specified timeout and process its standard output using the supplied \verb/IBufferProcessor/
+\item \verb/fork(String[] command, File directory)/: execute the command without time out and ignoring its standard output; equivalent to \verb/fork(command, directory, null, 0)/
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Standard output processing}
+For standard output processing, LAHSpectre supplies some implementation such as
+\begin{itemize}
+\item \verb/StreamRedirector/: implementation of \verb/IBufferProcessor/ that dump the buffer to an \verb/OutputStream/ or a file
+\item \verb/StringAccumulator/:  collect the buffer to a \verb/String/
+\end{itemize}
+in package \verb/lah.spectre.streams/.
+\end{frame}
+
+\begin{frame}[fragile]{Command line argument parsing}
+\begin{itemize}
+\item 
+\end{itemize}
+\end{frame}
+
+\end{document}

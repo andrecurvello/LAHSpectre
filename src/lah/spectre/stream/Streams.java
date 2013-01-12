@@ -82,17 +82,17 @@ public class Streams {
 	 * stream is fully processed or the calling thread is interrupted.
 	 * 
 	 * @param stream
+	 *            {@link InputStream} to read from
 	 * @param stream_processor
+	 *            Higher order byte buffer processor
 	 * @throws Exception
 	 */
-	public static void processStream(InputStream stream,
-			IBufferProcessor stream_processor) throws Exception {
+	public static void processStream(final InputStream stream,
+			final IBufferProcessor stream_processor) throws Exception {
 		if (stream == null)
 			return;
 		int count;
 		byte[] buffer = new byte[BuildConfig.BUFFER_SIZE];
-		if (stream_processor != null)
-			stream_processor.reset();
 		while ((count = stream.read(buffer)) != -1) {
 			if (Thread.currentThread().isInterrupted())
 				break;
@@ -174,6 +174,30 @@ public class Streams {
 			throw e;
 		} finally {
 			out_str.close();
+		}
+	}
+
+	/**
+	 * Higher-order method to process a stream; note that the stream is not
+	 * closed at the end of the processing! This method is blocking until the
+	 * stream is fully processed or the calling thread is interrupted.
+	 * 
+	 * @param stream
+	 *            {@link OutputStream} to write to
+	 * @param stream_producer
+	 *            Higher order producer to produce byte buffers
+	 * @throws Exception
+	 */
+	public static void supplyStream(final OutputStream stream,
+			final IBufferProducer stream_producer) throws Exception {
+		if (stream == null || stream_producer == null)
+			return;
+		int count;
+		byte[] buffer = new byte[BuildConfig.BUFFER_SIZE];
+		while ((count = stream_producer.fillBuffer(buffer)) != -1) {
+			if (Thread.currentThread().isInterrupted())
+				break;
+			stream.write(buffer, 0, count);
 		}
 	}
 

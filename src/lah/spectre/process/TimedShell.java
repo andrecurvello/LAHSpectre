@@ -86,8 +86,7 @@ public class TimedShell {
 	}
 
 	/**
-	 * Fork a new process to execute a command. This method is synchronized and
-	 * waiting for standard output so it is blocking.
+	 * Fork a new process to interact with a command
 	 * 
 	 * @param command
 	 *            a command to run
@@ -97,6 +96,8 @@ public class TimedShell {
 	 *            object to process the standard output, if this input is
 	 *            {@literal null}, the output is simply ignored (the effect is
 	 *            similar to sending to /dev/null)
+	 * @param stdin_producer
+	 *            object to interact with the external process
 	 * @param timeout
 	 *            maximum allowable time for the process to execute if greater
 	 *            than 0; input 0 means no timing or unlimited allowance
@@ -107,7 +108,8 @@ public class TimedShell {
 	 *             <b>stdout_processor</b> while processing the standard output.
 	 */
 	public synchronized int fork(String[] command, File directory,
-			IBufferProcessor stdout_processor, long timeout) throws Exception {
+			IBufferProcessor stdout_processor, IBufferProcessor stdin_producer,
+			long timeout) throws Exception {
 		is_timeout = false;
 		process = new ProcessBuilder(command).directory(directory)
 				.redirectErrorStream(true).start();
@@ -149,6 +151,33 @@ public class TimedShell {
 			// resources as well
 			kill();
 		}
+	}
+
+	/**
+	 * Fork a new process to execute a command. This method is synchronized and
+	 * waiting for standard output so it is blocking. This method does not
+	 * support interaction with the external process.
+	 * 
+	 * @param command
+	 *            a command to run
+	 * @param directory
+	 *            the working directory to run the command
+	 * @param stdout_processor
+	 *            object to process the standard output, if this input is
+	 *            {@literal null}, the output is simply ignored (the effect is
+	 *            similar to sending to /dev/null)
+	 * @param timeout
+	 *            maximum allowable time for the process to execute if greater
+	 *            than 0; input 0 means no timing or unlimited allowance
+	 * @return the exit value of the executed command
+	 * @throws Exception
+	 *             {@link TimeoutException} if the timeout is reached and the
+	 *             process has not finished; or any exception raised by
+	 *             <b>stdout_processor</b> while processing the standard output.
+	 */
+	public synchronized int fork(String[] command, File directory,
+			IBufferProcessor stdout_processor, long timeout) throws Exception {
+		return fork(command, directory, stdout_processor, null, timeout);
 	}
 
 	/**

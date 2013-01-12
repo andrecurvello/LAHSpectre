@@ -1,6 +1,5 @@
 package lah.spectre.interfaces;
 
-
 /**
  * General interface for result object.
  * 

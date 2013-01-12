@@ -17,12 +17,11 @@ public class StreamRedirector implements IBufferProcessor {
 	 * An {@link IBufferProcessor} that simply ignore the buffer
 	 */
 	public static final IBufferProcessor NULL = new IBufferProcessor() {
+
 		public void processBuffer(byte[] buffer, int count) throws Exception {
 			// Do nothing, just ignore the output
 		}
 
-		public void reset() {
-		}
 	};
 
 	/**
@@ -30,12 +29,11 @@ public class StreamRedirector implements IBufferProcessor {
 	 * output
 	 */
 	public static final IBufferProcessor STDOUT = new IBufferProcessor() {
+
 		public void processBuffer(byte[] buffer, int count) throws Exception {
 			System.out.println(new String(buffer, 0, count));
 		}
 
-		public void reset() {
-		}
 	};
 
 	/**
@@ -70,11 +68,6 @@ public class StreamRedirector implements IBufferProcessor {
 			out_stream.write(buffer, 0, count);
 			out_stream.flush();
 		}
-	}
-
-	@Override
-	public void reset() {
-		// Do nothing
 	}
 
 }

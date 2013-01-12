@@ -18,10 +18,13 @@ public class StringAccumulator implements IBufferProcessor {
 
 	@Override
 	public void processBuffer(byte[] buffer, int count) {
-		result.append(new String(buffer, 0, count));
+		String sbuf = new String(buffer, 0, count);
+		if (result == null)
+			result = new StringBuilder(sbuf);
+		else
+			result.append(sbuf);
 	}
 
-	@Override
 	public void reset() {
 		if (result == null)
 			result = new StringBuilder();

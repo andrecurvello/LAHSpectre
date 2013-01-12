@@ -36,8 +36,8 @@ public class BufferProcessingThread extends Thread {
 		try {
 			if (buffer == null)
 				buffer = new byte[BuildConfig.BUFFER_SIZE];
-			if (stream_processor != null)
-				stream_processor.reset();
+			// if (stream_processor != null)
+			// stream_processor.reset();
 			while ((count = input_stream.read(buffer)) != -1) {
 				if (stream_processor != null)
 					stream_processor.processBuffer(buffer, count);
