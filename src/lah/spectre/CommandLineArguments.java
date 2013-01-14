@@ -1,9 +1,63 @@
 package lah.spectre;
 
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CommandLineArguments {
+
+	/**
+	 * Regular expression pattern for each argument, basically, there are three
+	 * cases:
+	 * 
+	 * 1) single quoted argument '[any except single quote character]*'
+	 * 
+	 * 2) double quoted argument "[any except double quote character]*"
+	 * 
+	 * 3) any number of non-white-space characters or backslash escaped
+	 * white-space.
+	 * 
+	 * Note that this pattern does not consider Bash meta-characters such as `|`
+	 * (pipe), `&` (execute in background), `;` (command sequence separator),
+	 * `(`, `)` (command grouping), `>`, `|>` (output redirection), `<` (input
+	 * redirection) and control characters `&&` (logical and), `||` (logical or)
+	 */
+	public static final Pattern argument_pattern = Pattern
+			.compile("('[^']*'|\"[^\"]*\"|([^\\s]|\\\\s)+)\\s*");
+
+	/**
+	 * Parse a single <em>command</em> (not a shell or batch <em>script</em>) to
+	 * a {@link String} array of arguments. The command could contain single
+	 * quote, double quote or generic quote using backslash (\).
+	 * 
+	 * @param command
+	 *            The command line to parse, it should be of form
+	 *            {@code arg_0 arg_1 arg_2 ... arg_n} where arg_0 should be a
+	 *            program name (or absolute path) and arg_i are arguments passed
+	 *            to it. The arguments are white space (space or tab) separated
+	 *            and it can be quoted.
+	 * @return The array containing the arguments or {@literal null} if command
+	 *         is {@literal null} or we cannot match the whole command, for
+	 *         example, due to syntax error
+	 */
+	public static String[] getArgs(String command) {
+		if (command == null)
+			return null;
+
+		Matcher arg_matcher = argument_pattern.matcher(command);
+		LinkedList<String> args = new LinkedList<String>();
+		int e = -1;
+		while (arg_matcher.find()) {
+			args.add(arg_matcher.group(1));
+			e = arg_matcher.end(0);
+		}
+
+		// if we cannot match the whole command, this means there is error
+		return (e < command.length()) ? null : args.toArray(new String[args
+				.size()]);
+	}
 
 	/**
 	 * General method to parse a String of command line arguments. This method
