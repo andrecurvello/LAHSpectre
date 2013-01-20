@@ -11,7 +11,7 @@
 \titlepage
 \end{frame}
 
-\begin{frame}[fragile]{API Content}
+\begin{frame}[fragile]{API}
 \begin{itemize}
 \item Process management
 \begin{itemize}
@@ -29,7 +29,7 @@
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{API Content}
+\begin{frame}[fragile]{API (continued)}
 \begin{itemize}
 \item Command line argument parsing
 \item Common interface
@@ -61,7 +61,18 @@ in package \verb/lah.spectre.streams/.
 
 \begin{frame}[fragile]{Command line argument parsing}
 \begin{itemize}
-\item 
+\item \verb/getArgs(command)/ tokenizes a single command into the argument array
+\item \verb/parseCommandLineArguments(args)/ converts the argument array to a mapping of String key (typical command line switches that start with \verb/-/ or \verb/--/) to String value
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Stream processing}
+Here, a stream refers to subclasses of \verb/InputStream/ and \verb/OutputStream/. Static methods:
+\begin{itemize}
+\item \verb/closeStream(stream)/: close stream, catch and ignore any exception raised
+\item \verb/processStream(stream, processor)/: read the stream until end buffer by buffer and process it using the supplied processor
+\item \verb/readTextFile/: read the content of a file to a \verb/String/
+\item \verb/streamToFile/, \verb/writeStringToFile/
 \end{itemize}
 \end{frame}
 
