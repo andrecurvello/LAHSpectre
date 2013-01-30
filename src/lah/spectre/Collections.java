@@ -1,18 +1,55 @@
 package lah.spectre;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Various static methods to obtain {@link String} representation for
- * collection-kind objects like array, list, map, ...
+ * Various static array and collection manipulation methods such as obtain
+ * human--friendly {@link String} representation select a sub--collection etc
  * 
  * @author L.A.H.
  * 
  */
-public class CollectionPrinter {
+public class Collections {
+
+	public static <T> boolean[] getMembershipIndicator(T[] all_values,
+			Collection<T> selected_values) {
+		if (all_values == null || selected_values == null)
+			return null;
+		boolean[] selected = new boolean[all_values.length];
+		Set<T> set_of_selected_values = setOfCollection(selected_values);
+		for (int i = 0; i < all_values.length; i++)
+			selected[i] = set_of_selected_values.contains(all_values[i]);
+		return selected;
+	}
+
+	public static <T> boolean[] getMembershipIndicator(T[] all_values,
+			T[] selected_values) {
+		if (all_values == null || selected_values == null)
+			return null;
+		boolean[] selected = new boolean[all_values.length];
+		Set<T> set_of_selected_values = setOfArray(selected_values);
+		for (int i = 0; i < all_values.length; i++)
+			selected[i] = set_of_selected_values.contains(all_values[i]);
+		return selected;
+	}
+
+	public static <T> Set<T> setOfArray(T[] array) {
+		Set<T> result = new HashSet<T>();
+		for (T member : array)
+			result.add(member);
+		return result;
+	}
+
+	public static <T> Set<T> setOfCollection(Iterable<T> collection) {
+		Set<T> result = new HashSet<T>();
+		for (T member : collection)
+			result.add(member);
+		return result;
+	}
 
 	/**
 	 * Get a string representation for an array of objects

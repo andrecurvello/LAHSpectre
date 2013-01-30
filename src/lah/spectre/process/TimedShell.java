@@ -9,7 +9,7 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeoutException;
 
 import lah.spectre.BuildConfig;
-import lah.spectre.CollectionPrinter;
+import lah.spectre.Collections;
 import lah.spectre.stream.IBufferProcessor;
 import lah.spectre.stream.Streams;
 
@@ -130,7 +130,7 @@ public class TimedShell {
 		if (BuildConfig.DEBUG) {
 			System.out
 					.println("TimedShell: execute "
-							+ CollectionPrinter.stringOfArray(command, ",",
+							+ Collections.stringOfArray(command, ",",
 									"[", "]") + " @ "
 							+ directory.getAbsolutePath() + " with environment");
 			for (Entry<String, String> e : proc_builder.environment()

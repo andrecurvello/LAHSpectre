@@ -73,7 +73,7 @@ public class CommandLineArguments {
 		String key = null, value = null;
 		if (BuildConfig.DEBUG)
 			System.out.println("parseCommandLineArguments : Parse "
-					+ CollectionPrinter.stringOfArray(args, " | ", "[ ", " ]"));
+					+ Collections.stringOfArray(args, " | ", "[ ", " ]"));
 
 		for (int i = 0; i < args.length; i++) {
 			// Special handling for the program name
@@ -117,7 +117,7 @@ public class CommandLineArguments {
 
 		if (BuildConfig.DEBUG)
 			System.out.println("parseCommandLineArguments : Result = "
-					+ CollectionPrinter.stringOfMap(arg_map, ", ", "-->", "[ ",
+					+ Collections.stringOfMap(arg_map, ", ", "-->", "[ ",
 							" ]"));
 
 		return arg_map;
