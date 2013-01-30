@@ -2,10 +2,14 @@ package lah.spectre.process;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeoutException;
 
+import lah.spectre.BuildConfig;
+import lah.spectre.CollectionPrinter;
 import lah.spectre.stream.IBufferProcessor;
 import lah.spectre.stream.Streams;
 
@@ -89,30 +93,52 @@ public class TimedShell {
 	 * Fork a new process to interact with a command
 	 * 
 	 * @param command
-	 *            a command to run
+	 *            The (tokenized) command to run
 	 * @param directory
-	 *            the working directory to run the command
+	 *            The working directory to run the command
+	 * @param extra_environment
+	 *            The additional environment or modification of existing value,
+	 *            must be of type String[][2]; if this is {@code null}, the
+	 *            process to be created will execute with the current system
+	 *            environment
 	 * @param stdout_processor
-	 *            object to process the standard output, if this input is
+	 *            Object to process the standard output, if this input is
 	 *            {@literal null}, the output is simply ignored (the effect is
 	 *            similar to sending to /dev/null)
 	 * @param stdin_producer
-	 *            object to interact with the external process
+	 *            Object to interact with the external process
 	 * @param timeout
-	 *            maximum allowable time for the process to execute if greater
+	 *            Maximum allowable time for the process to execute if greater
 	 *            than 0; input 0 means no timing or unlimited allowance
-	 * @return the exit value of the executed command
+	 * @return The exit value of the executed command
 	 * @throws Exception
 	 *             {@link TimeoutException} if the timeout is reached and the
 	 *             process has not finished; or any exception raised by
 	 *             <b>stdout_processor</b> while processing the standard output.
 	 */
 	public synchronized int fork(String[] command, File directory,
-			IBufferProcessor stdout_processor, IBufferProcessor stdin_producer,
-			long timeout) throws Exception {
+			String[][] extra_environment, IBufferProcessor stdout_processor,
+			IBufferProcessor stdin_producer, long timeout) throws Exception {
 		is_timeout = false;
-		process = new ProcessBuilder(command).directory(directory)
-				.redirectErrorStream(true).start();
+		ProcessBuilder proc_builder = new ProcessBuilder(command).directory(
+				directory).redirectErrorStream(true);
+		if (extra_environment != null) {
+			Map<String, String> env = proc_builder.environment();
+			for (int i = 0; i < extra_environment.length; i++)
+				env.put(extra_environment[i][0], extra_environment[i][1]);
+		}
+		if (BuildConfig.DEBUG) {
+			System.out
+					.println("TimedShell: execute "
+							+ CollectionPrinter.stringOfArray(command, ",",
+									"[", "]") + " @ "
+							+ directory.getAbsolutePath() + " with environment");
+			for (Entry<String, String> e : proc_builder.environment()
+					.entrySet()) {
+				System.out.println(e.getKey() + " = " + e.getValue());
+			}
+		}
+		process = proc_builder.start();
 		exit_value = -1;
 
 		// Schedule the timer to time-out the process (if necessary)
@@ -153,31 +179,16 @@ public class TimedShell {
 		}
 	}
 
-	/**
-	 * Fork a new process to execute a command. This method is synchronized and
-	 * waiting for standard output so it is blocking. This method does not
-	 * support interaction with the external process.
-	 * 
-	 * @param command
-	 *            a command to run
-	 * @param directory
-	 *            the working directory to run the command
-	 * @param stdout_processor
-	 *            object to process the standard output, if this input is
-	 *            {@literal null}, the output is simply ignored (the effect is
-	 *            similar to sending to /dev/null)
-	 * @param timeout
-	 *            maximum allowable time for the process to execute if greater
-	 *            than 0; input 0 means no timing or unlimited allowance
-	 * @return the exit value of the executed command
-	 * @throws Exception
-	 *             {@link TimeoutException} if the timeout is reached and the
-	 *             process has not finished; or any exception raised by
-	 *             <b>stdout_processor</b> while processing the standard output.
-	 */
+	public synchronized int fork(String[] command, File directory,
+			String[][] extra_environment, IBufferProcessor stdout_processor,
+			long timeout) throws Exception {
+		return fork(command, directory, extra_environment, stdout_processor,
+				null, timeout);
+	}
+
 	public synchronized int fork(String[] command, File directory,
 			IBufferProcessor stdout_processor, long timeout) throws Exception {
-		return fork(command, directory, stdout_processor, null, timeout);
+		return fork(command, directory, null, stdout_processor, null, timeout);
 	}
 
 	/**
