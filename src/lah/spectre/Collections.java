@@ -2,7 +2,6 @@ package lah.spectre;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -70,9 +69,11 @@ public class Collections {
 		if (objs != null) {
 			boolean first_element = true;
 			for (Object o : objs) {
-				res.append((first_element ? "" : sep));
-				res.append(o.toString());
-				first_element = false;
+				if (o != null) {
+					res.append((first_element ? "" : sep));
+					res.append(o.toString());
+					first_element = false;
+				}
 			}
 		}
 		return res.append(suffix == null ? "" : suffix).toString();
@@ -91,30 +92,11 @@ public class Collections {
 		if (collection != null) {
 			boolean first_element = true;
 			for (Object elem : collection) {
-				res.append((first_element ? "" : sep));
-				res.append(elem.toString());
-				first_element = false;
-			}
-		}
-		return res.append(suffix == null ? "" : suffix).toString();
-	}
-
-	/**
-	 * Get a string representation for a list of object
-	 * 
-	 * @param list
-	 * @param sep
-	 * @return
-	 */
-	public static String stringOfList(List<?> list, String sep, String prefix,
-			String suffix) {
-		StringBuilder res = new StringBuilder(prefix == null ? "" : prefix);
-		if (list != null) {
-			boolean first_element = true;
-			for (Object e : list) {
-				res.append((first_element ? "" : sep));
-				res.append(e.toString());
-				first_element = false;
+				if (elem != null) {
+					res.append((first_element ? "" : sep));
+					res.append(elem.toString());
+					first_element = false;
+				}
 			}
 		}
 		return res.append(suffix == null ? "" : suffix).toString();
@@ -148,29 +130,6 @@ public class Collections {
 				res.append(key.toString());
 				res.append(mapto);
 				res.append(value.toString());
-				first_element = false;
-			}
-		}
-		return res.append(suffix == null ? "" : suffix).toString();
-	}
-
-	/**
-	 * Get a string representation of a set of objects
-	 * 
-	 * @param set
-	 * @param sep
-	 * @param prefix
-	 * @param suffix
-	 * @return
-	 */
-	public static String stringOfSet(Set<?> set, String sep, String prefix,
-			String suffix) {
-		StringBuilder res = new StringBuilder(prefix == null ? "" : prefix);
-		if (set != null) {
-			boolean first_element = true;
-			for (Object m : set) {
-				res.append((first_element ? "" : sep));
-				res.append(m.toString());
 				first_element = false;
 			}
 		}
