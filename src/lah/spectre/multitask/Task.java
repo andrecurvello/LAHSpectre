@@ -1,5 +1,7 @@
 package lah.spectre.multitask;
 
+import java.util.concurrent.Future;
+
 import lah.spectre.interfaces.IResult;
 
 /**
@@ -10,10 +12,10 @@ import lah.spectre.interfaces.IResult;
  */
 public interface Task {
 
-	Task getParentTask();
-
 	IResult getResult();
 
+	void setFuture(Future<?> future);
+
 	void start();
-	
+
 }
