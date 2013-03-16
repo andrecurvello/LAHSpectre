@@ -2,6 +2,7 @@ package lah.spectre.process;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
@@ -53,6 +54,8 @@ public class TimedShell {
 	 */
 	private int exit_value;
 
+	private Map<String, String> global_environment = new HashMap<String, String>();
+
 	/**
 	 * Flag to indicate if the process exceeds its time out limit
 	 */
@@ -72,6 +75,17 @@ public class TimedShell {
 	 * Global timer to timeout the external process
 	 */
 	private final Timer process_timer = new Timer();
+
+	/**
+	 * Set the value of a environment variable for ALL subsequent fork
+	 * 
+	 * @param env_variable
+	 * @param value
+	 */
+	public void export(String env_variable, String value) {
+		if (env_variable != null && value != null)
+			global_environment.put(env_variable, value);
+	}
 
 	/**
 	 * Execute the command with {@literal null} stdout processor and no time out
@@ -134,8 +148,13 @@ public class TimedShell {
 		is_timeout = false;
 		ProcessBuilder proc_builder = new ProcessBuilder(command).directory(
 				directory).redirectErrorStream(true);
+		// Set up the environment for the process
+		Map<String, String> env = proc_builder.environment();
+		// Set the global (exported) variables
+		for (Entry<String, String> e : global_environment.entrySet())
+			env.put(e.getKey(), e.getValue());
+		// Set the extra variables
 		if (extra_environment != null) {
-			Map<String, String> env = proc_builder.environment();
 			for (int i = 0; i < extra_environment.length; i += 2)
 				env.put(extra_environment[i], extra_environment[i + 1]);
 		}
@@ -194,6 +213,13 @@ public class TimedShell {
 			long timeout) throws Exception {
 		return fork(command, directory, extra_environment, stdout_processor,
 				null, timeout);
+	}
+
+	public String getEnv(String variable) {
+		if (variable == null)
+			return null;
+		return (global_environment.containsKey(variable)) ? global_environment
+				.get(variable) : System.getenv(variable);
 	}
 
 	/**
