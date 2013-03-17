@@ -22,8 +22,8 @@ import java.util.concurrent.Future;
 public class TaskManager<T extends Task> {
 
 	/**
-	 * Task to periodically check tasks' status and schedule (i.e. submit)
-	 * pending executable tasks
+	 * {@link TimerTask} to periodically check tasks' status and schedule (i.e.
+	 * submit) pending executable tasks
 	 * 
 	 * @author L.A.H.
 	 * 
@@ -83,8 +83,9 @@ public class TaskManager<T extends Task> {
 		task_executor = Executors.newSingleThreadExecutor();
 		added_task_list = new ArrayList<T>();
 		pending_task_list = new ArrayList<T>();
-		new Timer()
-				.scheduleAtFixedRate(new TaskScheduler(), 0, SCHEDULE_PERIOD);
+		// periodically submit executable tasks
+		TimerTask scheduling_task = new TaskScheduler();
+		new Timer().scheduleAtFixedRate(scheduling_task, 0, SCHEDULE_PERIOD);
 	}
 
 	/**
@@ -95,14 +96,20 @@ public class TaskManager<T extends Task> {
 	public void add(T task) {
 		if (task == null)
 			return;
-		task_id_table.put(System.identityHashCode(task), task);
-		added_task_list.add(task);
-		if (task.isExecutable())
+		if (!added_task_list.contains(task)) {
+			task_id_table.put(System.identityHashCode(task), task);
+			added_task_list.add(task);
+		}
+		// submit the task if it is executable; otherwise, put it to the
+		// list of tasks to be periodically checked and submitted by the
+		// scheduling thread
+		if (task.isExecutable()) {
 			task_executor.submit(task);
-		else
+		} else {
 			synchronized (pending_task_list) {
 				pending_task_list.add(task);
 			}
+		}
 	}
 
 	/**

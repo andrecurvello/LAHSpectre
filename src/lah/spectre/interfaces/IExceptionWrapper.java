@@ -13,6 +13,6 @@ public interface IExceptionWrapper {
 
 	boolean hasException();
 
-	void setException(Exception e);
+	//void setException(Exception e);
 
 }
