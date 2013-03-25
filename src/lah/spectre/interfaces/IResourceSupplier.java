@@ -6,19 +6,38 @@ package lah.spectre.interfaces;
  * 
  * @author L.A.H.
  * 
- * @param <I>
- *            Type of input
- * @param <E>
- *            Type of output
+ * @param <K>
+ *            Type of key
+ * @param <R>
+ *            Type of resource
  */
-public interface IResourceSupplier<I, O> {
+public interface IResourceSupplier<K, R> {
 
 	/**
-	 * Compute the requested resource
+	 * Interface for general object that consumes resources produced by
+	 * {@link IResourceSupplier}.
 	 * 
-	 * @param args
-	 * @return
+	 * @author L.A.H.
+	 * 
+	 * @param <P>
+	 *            Type of progress report
+	 * @param <R>
+	 *            Type of resource
 	 */
-	O getResource(I inputs);
+	public static interface Listener<P, R> {
+
+		void onProgress(P progress);
+
+		void onComplete(R resource);
+
+	}
+
+	/**
+	 * Get the resource with the supplied key
+	 * 
+	 * @param key
+	 *            Key of the resource
+	 */
+	R getResource(K key) throws Exception;
 
 }

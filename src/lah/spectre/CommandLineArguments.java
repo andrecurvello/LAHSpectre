@@ -116,9 +116,10 @@ public class CommandLineArguments {
 		}
 
 		if (BuildConfig.DEBUG)
-			System.out.println("parseCommandLineArguments : Result = "
-					+ Collections.stringOfMap(arg_map, ", ", "-->", "[ ",
-							" ]"));
+			System.out
+					.println("parseCommandLineArguments : Result = "
+							+ Collections.stringOfMap(arg_map, ", ", "-->",
+									"[ ", " ]"));
 
 		return arg_map;
 	}
