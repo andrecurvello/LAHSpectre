@@ -43,25 +43,20 @@ public class TimedProcess {
 	TimedProcess() {
 	}
 
-	public TimedProcess(String[] command, File working_directory,
-			boolean redirect_stderr) throws IOException {
+	public TimedProcess(String[] command, File working_directory, boolean redirect_stderr) throws IOException {
 		this.command = command;
-		process = new ProcessBuilder(command).directory(working_directory)
-				.redirectErrorStream(redirect_stderr).start();
+		process = new ProcessBuilder(command).directory(working_directory).redirectErrorStream(redirect_stderr).start();
 	}
 
-	public TimedProcess(String[] command, File working_directory,
-			boolean redirect_stderr, IBufferProcessor processor,
-			IExceptionHandler stdout_processing_exception_handler, long timeout)
-			throws IOException {
+	public TimedProcess(String[] command, File working_directory, boolean redirect_stderr, IBufferProcessor processor,
+			IExceptionHandler stdout_processing_exception_handler, long timeout) throws IOException {
 		this(command, working_directory, redirect_stderr);
 		setStdOutHandler(processor, stdout_processing_exception_handler, null);
 		setAndStartTimeOut(timeout);
 	}
 
-	public TimedProcess(String[] command, File directory,
-			boolean redirectError, IBufferProcessor processor, long timeout)
-			throws IOException {
+	public TimedProcess(String[] command, File directory, boolean redirectError, IBufferProcessor processor,
+			long timeout) throws IOException {
 		this(command, directory, redirectError);
 		setStdOutHandler(processor);
 		setAndStartTimeOut(timeout);
@@ -137,13 +132,11 @@ public class TimedProcess {
 		setStdOutHandler(processor, null, null);
 	}
 
-	public void setStdOutHandler(IBufferProcessor processor,
-			IExceptionHandler exception_handler,
+	public void setStdOutHandler(IBufferProcessor processor, IExceptionHandler exception_handler,
 			IResultListener<Void> result_listener) {
 		if (process != null) {
-			stdout_processing_thread = new BufferProcessingThread(
-					process.getInputStream(), processor, exception_handler,
-					result_listener);
+			stdout_processing_thread = new BufferProcessingThread(process.getInputStream(), processor,
+					exception_handler, result_listener);
 			stdout_processing_thread.start();
 		}
 	}

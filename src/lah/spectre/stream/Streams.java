@@ -58,8 +58,7 @@ public class Streams {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public static void pipeIOStream(InputStream input_stream,
-			OutputStream output_stream) throws IOException,
+	public static void pipeIOStream(InputStream input_stream, OutputStream output_stream) throws IOException,
 			InterruptedException {
 		if (input_stream == null)
 			return;
@@ -87,8 +86,8 @@ public class Streams {
 	 *            Higher order byte buffer processor
 	 * @throws Exception
 	 */
-	public static void processStream(final InputStream stream,
-			final IBufferProcessor stream_processor) throws Exception {
+	public static void processStream(final InputStream stream, final IBufferProcessor stream_processor)
+			throws Exception {
 		if (stream == null)
 			return;
 		int count;
@@ -109,8 +108,7 @@ public class Streams {
 	 * @throws IOException
 	 */
 	public static String readTextFile(File file) throws IOException {
-		BufferedInputStream file_inpstr = new BufferedInputStream(
-				new FileInputStream(file));
+		BufferedInputStream file_inpstr = new BufferedInputStream(new FileInputStream(file));
 		String content = readTillEnd(file_inpstr);
 		file_inpstr.close();
 		return content;
@@ -126,8 +124,7 @@ public class Streams {
 	 * @throws IOException
 	 *             if the file cannot be read (for example, access denied)
 	 */
-	public static String readTextFile(String path_to_file)
-			throws FileNotFoundException, IOException {
+	public static String readTextFile(String path_to_file) throws FileNotFoundException, IOException {
 		File file = new File(path_to_file);
 		return readTextFile(file);
 	}
@@ -147,8 +144,7 @@ public class Streams {
 		byte[] buffer = new byte[BuildConfig.BUFFER_SIZE];
 		StringBuilder stream_content_builder = new StringBuilder();
 		int count;
-		while (!Thread.currentThread().isInterrupted()
-				&& (count = inpstr.read(buffer)) != -1) {
+		while (!Thread.currentThread().isInterrupted() && (count = inpstr.read(buffer)) != -1) {
 			stream_content_builder.append(new String(buffer, 0, count));
 		}
 		return stream_content_builder.toString();
@@ -162,9 +158,8 @@ public class Streams {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public static void streamToFile(InputStream inpstr, File out,
-			boolean deleteOnInterruption, boolean append) throws IOException,
-			InterruptedException {
+	public static void streamToFile(InputStream inpstr, File out, boolean deleteOnInterruption, boolean append)
+			throws IOException, InterruptedException {
 		FileOutputStream out_str = new FileOutputStream(out, append);
 		try {
 			pipeIOStream(inpstr, out_str);
@@ -188,8 +183,7 @@ public class Streams {
 	 *            Higher order producer to produce byte buffers
 	 * @throws Exception
 	 */
-	public static void supplyStream(final OutputStream stream,
-			final IBufferProducer stream_producer) throws Exception {
+	public static void supplyStream(final OutputStream stream, final IBufferProducer stream_producer) throws Exception {
 		if (stream == null || stream_producer == null)
 			return;
 		int count;
@@ -212,8 +206,7 @@ public class Streams {
 	 *            {@literal true} to append the file instead of overwriting
 	 * @throws IOException
 	 */
-	public static void writeStringToFile(String content, File output,
-			boolean append) throws IOException {
+	public static void writeStringToFile(String content, File output, boolean append) throws IOException {
 		FileWriter writer = new FileWriter(output, append);
 		writer.write(content);
 		writer.close();

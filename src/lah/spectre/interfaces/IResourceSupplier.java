@@ -26,9 +26,9 @@ public interface IResourceSupplier<K, R> {
 	 */
 	public static interface Listener<P, R> {
 
-		void onProgress(P progress);
-
 		void onComplete(R resource);
+
+		void onProgress(P progress);
 
 	}
 

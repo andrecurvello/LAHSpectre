@@ -18,8 +18,7 @@ public class BufferProcessingThread extends Thread {
 
 	private IBufferProcessor stream_processor;
 
-	public BufferProcessingThread(InputStream inp_stream,
-			IBufferProcessor processor, IExceptionHandler exc_handler,
+	public BufferProcessingThread(InputStream inp_stream, IBufferProcessor processor, IExceptionHandler exc_handler,
 			IResultListener<Void> res_handler) {
 		input_stream = inp_stream;
 		stream_processor = processor;

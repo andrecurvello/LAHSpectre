@@ -38,8 +38,7 @@ public class TaskManager<T extends Task> {
 						task_executor.submit(task);
 						pending_task_list.remove(task);
 						Future<?> future = task_executor.submit(task);
-						future_id_table.put(System.identityHashCode(task),
-								future);
+						future_id_table.put(System.identityHashCode(task), future);
 					}
 				}
 			}
@@ -125,8 +124,7 @@ public class TaskManager<T extends Task> {
 			pending_task_list.remove(task);
 		}
 		// and cancel the task if it is executing
-		Future<?> task_future = future_id_table.remove(System
-				.identityHashCode(task));
+		Future<?> task_future = future_id_table.remove(System.identityHashCode(task));
 		if (task_future != null)
 			task_future.cancel(true);
 	}

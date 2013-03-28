@@ -14,6 +14,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import lah.spectre.stream.Streams;
+
 /**
  * This class functions as a general purpose network resource retrieval manager.
  * It manages list of download files, support download resume and many more.
@@ -393,6 +395,26 @@ public class SpectreGet {
 	// }
 
 	/**
+	 * Download a file
+	 * 
+	 * @param uri
+	 *            URI of the file to download
+	 * @param output_file
+	 *            The expected downloaded File
+	 * @return
+	 * @throws Exception
+	 */
+	public static File downloadFile(String uri, File output_file) throws Exception {
+		if (!output_file.getParentFile().exists())
+			output_file.getParentFile().mkdirs();
+		URL url = new URL(uri);
+		URLConnection urlconn = url.openConnection();
+		urlconn.connect();
+		Streams.streamToFile(urlconn.getInputStream(), output_file, true, false);
+		return output_file.exists() ? output_file : null;
+	}
+
+	/**
 	 * Get a file in background and inform the listener about the content-length
 	 * (-1 if not known), the progress (in term of number of bytes downloaded)
 	 * and the successfully retrieved or erroneous state.
@@ -415,21 +437,18 @@ public class SpectreGet {
 	 * @throws NullPointerException
 	 *             if any of the URI or output directory is null
 	 */
-	public static Result get(Listener listener, String uri,
-			String output_directory, String output_file_name,
-			boolean force_download) throws InterruptedException,
-			MakeDirectoryException, IOException {
+	public static Result get(Listener listener, String uri, String output_directory, String output_file_name,
+			boolean force_download) throws InterruptedException, MakeDirectoryException, IOException {
 		// Print a summary of what we are going to do
-		summarize(listener, uri, output_directory, output_file_name,
-				force_download);
+		summarize(listener, uri, output_directory, output_file_name, force_download);
 
 		// Create the output directory if it does not exists
 		File dir = new File(output_directory);
 		if (!dir.exists()) {
 			dir.mkdirs();
 			if (!dir.exists())
-				throw new MakeDirectoryException("Cannot create directory "
-						+ output_directory + " to write downloaded file to.");
+				throw new MakeDirectoryException("Cannot create directory " + output_directory
+						+ " to write downloaded file to.");
 		}
 
 		if (BuildConfig.DEBUG)
@@ -440,26 +459,22 @@ public class SpectreGet {
 			URL url = new URL(uri);
 			urlconn = url.openConnection();
 			if (BuildConfig.DEBUG)
-				System.out
-						.println("SpectreGet.get : Connection is open. Now we try to connect.");
+				System.out.println("SpectreGet.get : Connection is open. Now we try to connect.");
 			urlconn.connect();
 			if (BuildConfig.DEBUG)
 				System.out.println("SpectreGet.get : We are connected.");
 		} catch (IOException e) {
 			// possibly a malform URL as well!
-			throw new IOException(
-					"Cannot open connection. Please check your network.");
+			throw new IOException("Cannot open connection. Please check your network.");
 		}
 
 		// Determine the content length
 		if (BuildConfig.DEBUG)
-			System.out
-					.println("SpectreGet.get : Try to get the content length.");
+			System.out.println("SpectreGet.get : Try to get the content length.");
 		// getContentLengthLong() is preferred but it is ONLY available at 1.7!
 		int remote_file_length = urlconn.getContentLength();
 		if (BuildConfig.DEBUG)
-			System.out.println("SpectreGet.get : Remote content length = "
-					+ remote_file_length);
+			System.out.println("SpectreGet.get : Remote content length = " + remote_file_length);
 
 		// Now download the file if
 		// we are forced to download; or
@@ -468,18 +483,13 @@ public class SpectreGet {
 		// specified by the server.
 		String disp = urlconn.getHeaderField("Content-Disposition");
 		if (BuildConfig.DEBUG)
-			System.out.println("SpectreGet.get : Content-Disposition := "
-					+ disp);
-		output_file_name = getOutputFileName(output_file_name, disp,
-				output_directory);
-		File output = new File(output_directory + File.separator
-				+ output_file_name);
+			System.out.println("SpectreGet.get : Content-Disposition := " + disp);
+		output_file_name = getOutputFileName(output_file_name, disp, output_directory);
+		File output = new File(output_directory + File.separator + output_file_name);
 		if (BuildConfig.DEBUG)
-			System.out.println("SpectreGet.get : Finalized output file := "
-					+ output);
+			System.out.println("SpectreGet.get : Finalized output file := " + output);
 
-		if (!force_download && output.exists()
-				&& remote_file_length == output.length()) {
+		if (!force_download && output.exists() && remote_file_length == output.length()) {
 			// Negation of download condition: simply return the existing file
 			return new Result(output, false);
 		}
@@ -490,8 +500,7 @@ public class SpectreGet {
 		InputStream remote_input_stream;
 		try {
 			remote_input_stream = urlconn.getInputStream();
-			OutputStream file_output_stream = new BufferedOutputStream(
-					new FileOutputStream(output));
+			OutputStream file_output_stream = new BufferedOutputStream(new FileOutputStream(output));
 
 			byte[] buffer = new byte[BuildConfig.BUFFER_SIZE];
 			int total_num_bytes_downloaded = 0;
@@ -518,8 +527,7 @@ public class SpectreGet {
 				// throw an InterruptedException to the caller
 				if (Thread.currentThread().isInterrupted()) {
 					file_output_stream.close();
-					throw new InterruptedException(
-							"Interrupted while downloading file.");
+					throw new InterruptedException("Interrupted while downloading file.");
 				}
 
 				// Write the data to the output stream
@@ -539,12 +547,9 @@ public class SpectreGet {
 
 			return new Result(output, true);
 		} catch (IOException e) {
-			throw new IOException(
-					"Cannot download or write file! This is possibly because:"
-							+ "The remote host is down.\n"
-							+ "You have no Internet connection.\n"
-							+ "You are disconnected.\n"
-							+ "Your device is write-protected or out of space.");
+			throw new IOException("Cannot download or write file! This is possibly because:"
+					+ "The remote host is down.\n" + "You have no Internet connection.\n" + "You are disconnected.\n"
+					+ "Your device is write-protected or out of space.");
 		}
 	}
 
@@ -556,8 +561,7 @@ public class SpectreGet {
 	 * @param output_directory
 	 * @return
 	 */
-	private static String getOutputFileName(String output_file_name,
-			String disp, String output_directory) {
+	private static String getOutputFileName(String output_file_name, String disp, String output_directory) {
 		if (output_file_name != null)
 			return output_file_name;
 
@@ -596,19 +600,15 @@ public class SpectreGet {
 		return urlconn.getInputStream();
 	}
 
-	private static void summarize(Listener listener, String uri,
-			String output_directory, String output_file_name,
+	private static void summarize(Listener listener, String uri, String output_directory, String output_file_name,
 			boolean force_overwrite) {
 		// Print out the download job summary
 		if (BuildConfig.DEBUG) {
 			System.out.println("SpectreGet.get : URI              := " + uri);
-			System.out.println("SpectreGet.get : Output location  := "
-					+ output_directory);
+			System.out.println("SpectreGet.get : Output location  := " + output_directory);
 			System.out.println("SpectreGet.get : Output file name := "
-					+ (output_file_name == null ? "<unspecified>"
-							: output_file_name));
-			System.out.println("SpectreGet.get : Force overwrite  := "
-					+ (force_overwrite ? "yes" : "no"));
+					+ (output_file_name == null ? "<unspecified>" : output_file_name));
+			System.out.println("SpectreGet.get : Force overwrite  := " + (force_overwrite ? "yes" : "no"));
 		}
 	}
 
@@ -643,16 +643,14 @@ public class SpectreGet {
 			current_get_task.cancel(true);
 	}
 
-	public void getInBackground(final Listener listener, final String uri,
-			final String output_directory, final String output_file_name,
-			final boolean force_overwrite) {
+	public void getInBackground(final Listener listener, final String uri, final String output_directory,
+			final String output_file_name, final boolean force_overwrite) {
 		current_get_task = task_scheduler.submit(new Runnable() {
 
 			@Override
 			public void run() {
 				try {
-					get(listener, uri, output_directory, output_file_name,
-							force_overwrite);
+					get(listener, uri, output_directory, output_file_name, force_overwrite);
 				} catch (Exception e) {
 					e.printStackTrace();
 					listener.notifyException(e);

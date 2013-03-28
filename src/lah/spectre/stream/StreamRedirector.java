@@ -48,8 +48,7 @@ public class StreamRedirector implements IBufferProcessor {
 	 * @param append
 	 * @throws FileNotFoundException
 	 */
-	public StreamRedirector(File output_file, boolean append)
-			throws FileNotFoundException {
+	public StreamRedirector(File output_file, boolean append) throws FileNotFoundException {
 		this(new FileOutputStream(output_file, append));
 	}
 

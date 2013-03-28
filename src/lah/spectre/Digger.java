@@ -70,8 +70,7 @@ public class Digger extends InputStream {
 	 * @return
 	 * @throws IOException
 	 */
-	public static InputStream decompress(Format format, File compressed_file)
-			throws IOException {
+	public static InputStream decompress(Format format, File compressed_file) throws IOException {
 		return decompress(format, new FileInputStream(compressed_file));
 	}
 
@@ -84,8 +83,7 @@ public class Digger extends InputStream {
 	 * @return
 	 * @throws IOException
 	 */
-	public static InputStream decompress(Format format,
-			InputStream compressed_src) throws IOException {
+	public static InputStream decompress(Format format, InputStream compressed_src) throws IOException {
 		return new XZInputStream(compressed_src);
 	}
 
@@ -98,8 +96,7 @@ public class Digger extends InputStream {
 	 * @return
 	 * @throws IOException
 	 */
-	public static InputStream decompress(Format format,
-			String compressed_file_path) throws IOException {
+	public static InputStream decompress(Format format, String compressed_file_path) throws IOException {
 		return decompress(format, new File(compressed_file_path));
 	}
 
@@ -112,9 +109,8 @@ public class Digger extends InputStream {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public static void untarToFileSystem(TarInputStream tar_stream,
-			FileRelocator relocator, Listener listener) throws IOException,
-			InterruptedException {
+	public static void untarToFileSystem(TarInputStream tar_stream, FileRelocator relocator, Listener listener)
+			throws IOException, InterruptedException {
 		TarEntry entry;
 		if (listener != null)
 			listener.notifyMaxProgress(-1);
@@ -122,8 +118,7 @@ public class Digger extends InputStream {
 		while ((entry = tar_stream.getNextEntry()) != null) {
 
 			if (Thread.currentThread().isInterrupted()) {
-				throw new InterruptedException(
-						"Interrupted while extracting file.");
+				throw new InterruptedException("Interrupted while extracting file.");
 			}
 
 			// Locate the entry in the file system
@@ -142,8 +137,7 @@ public class Digger extends InputStream {
 					if (listener != null)
 						listener.notifyCurrentProgress(num_entries_processed);
 				} catch (InterruptedException e) {
-					throw new InterruptedException(
-							"Interrupted while extracting file.");
+					throw new InterruptedException("Interrupted while extracting file.");
 				} catch (IOException e) {
 					throw new IOException("Cannot write file.");
 				}
@@ -234,8 +228,7 @@ public class Digger extends InputStream {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public void unarchiveToFileSystem(FileRelocator relocator)
-			throws IOException, InterruptedException {
+	public void unarchiveToFileSystem(FileRelocator relocator) throws IOException, InterruptedException {
 		IFileEntry entry;
 		while ((entry = getNextEntry()) != null) {
 
@@ -252,8 +245,7 @@ public class Digger extends InputStream {
 				// Make necessary directories first
 				entry_out.getParentFile().mkdirs();
 				// And then write the file
-				FileOutputStream entry_outstream = new FileOutputStream(
-						entry_out);
+				FileOutputStream entry_outstream = new FileOutputStream(entry_out);
 				Streams.pipeIOStream(this, entry_outstream);
 				// Finally close the stream
 				entry_outstream.close();

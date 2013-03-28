@@ -103,8 +103,8 @@ public class TimedShell {
 		return fork(command, directory, null, 0);
 	}
 
-	public synchronized int fork(String[] command, File directory,
-			IBufferProcessor stdout_processor, long timeout) throws Exception {
+	public synchronized int fork(String[] command, File directory, IBufferProcessor stdout_processor, long timeout)
+			throws Exception {
 		return fork(command, directory, null, stdout_processor, null, timeout);
 	}
 
@@ -142,12 +142,10 @@ public class TimedShell {
 	 *             {@link ArrayIndexOutOfBoundsException} if the environment
 	 *             array is of odd length.
 	 */
-	public synchronized int fork(String[] command, File directory,
-			String[] extra_environment, IBufferProcessor stdout_processor,
-			IBufferProcessor stdin_producer, long timeout) throws Exception {
+	public synchronized int fork(String[] command, File directory, String[] extra_environment,
+			IBufferProcessor stdout_processor, IBufferProcessor stdin_producer, long timeout) throws Exception {
 		is_timeout = false;
-		ProcessBuilder proc_builder = new ProcessBuilder(command).directory(
-				directory).redirectErrorStream(true);
+		ProcessBuilder proc_builder = new ProcessBuilder(command).directory(directory).redirectErrorStream(true);
 		// Set up the environment for the process
 		Map<String, String> env = proc_builder.environment();
 		// Set the global (exported) variables
@@ -159,11 +157,9 @@ public class TimedShell {
 				env.put(extra_environment[i], extra_environment[i + 1]);
 		}
 		if (BuildConfig.DEBUG) {
-			System.out.println("TimedShell: execute "
-					+ Collections.stringOfArray(command, ",", "[", "]") + " @ "
+			System.out.println("TimedShell: execute " + Collections.stringOfArray(command, ",", "[", "]") + " @ "
 					+ directory.getAbsolutePath() + " with environment");
-			for (Entry<String, String> e : proc_builder.environment()
-					.entrySet()) {
+			for (Entry<String, String> e : proc_builder.environment().entrySet()) {
 				System.out.println(e.getKey() + " = " + e.getValue());
 			}
 		}
@@ -187,8 +183,7 @@ public class TimedShell {
 
 			// Time out occurs, raise exception after finally-clause is done!
 			if (is_timeout)
-				throw new TimeoutException("Timeout while executing "
-						+ command[0]);
+				throw new TimeoutException("Timeout while executing " + command[0]);
 
 			// Note: the finally is executed so that the process definitely
 			// exits and so we can safely return the exit value
@@ -208,18 +203,15 @@ public class TimedShell {
 		}
 	}
 
-	public synchronized int fork(String[] command, File directory,
-			String[] extra_environment, IBufferProcessor stdout_processor,
-			long timeout) throws Exception {
-		return fork(command, directory, extra_environment, stdout_processor,
-				null, timeout);
+	public synchronized int fork(String[] command, File directory, String[] extra_environment,
+			IBufferProcessor stdout_processor, long timeout) throws Exception {
+		return fork(command, directory, extra_environment, stdout_processor, null, timeout);
 	}
 
 	public String getEnv(String variable) {
 		if (variable == null)
 			return null;
-		return (global_environment.containsKey(variable)) ? global_environment
-				.get(variable) : System.getenv(variable);
+		return (global_environment.containsKey(variable)) ? global_environment.get(variable) : System.getenv(variable);
 	}
 
 	/**

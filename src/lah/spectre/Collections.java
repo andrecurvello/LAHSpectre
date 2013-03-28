@@ -14,8 +14,7 @@ import java.util.Set;
  */
 public class Collections {
 
-	public static <T> boolean[] getMembershipIndicator(T[] all_values,
-			Collection<T> selected_values) {
+	public static <T> boolean[] getMembershipIndicator(T[] all_values, Collection<T> selected_values) {
 		if (all_values == null || selected_values == null)
 			return null;
 		boolean[] selected = new boolean[all_values.length];
@@ -25,8 +24,7 @@ public class Collections {
 		return selected;
 	}
 
-	public static <T> boolean[] getMembershipIndicator(T[] all_values,
-			T[] selected_values) {
+	public static <T> boolean[] getMembershipIndicator(T[] all_values, T[] selected_values) {
 		if (all_values == null || selected_values == null)
 			return null;
 		boolean[] selected = new boolean[all_values.length];
@@ -63,8 +61,7 @@ public class Collections {
 	 *            Suffix of string result
 	 * @return
 	 */
-	public static String stringOfArray(Object[] objs, String sep,
-			String prefix, String suffix) {
+	public static String stringOfArray(Object[] objs, String sep, String prefix, String suffix) {
 		StringBuilder res = new StringBuilder(prefix == null ? "" : prefix);
 		if (objs != null) {
 			boolean first_element = true;
@@ -86,8 +83,7 @@ public class Collections {
 	 * @param sep
 	 * @return
 	 */
-	public static String stringOfCollection(Collection<?> collection,
-			String sep, String prefix, String suffix) {
+	public static String stringOfCollection(Collection<?> collection, String sep, String prefix, String suffix) {
 		StringBuilder res = new StringBuilder(prefix == null ? "" : prefix);
 		if (collection != null) {
 			boolean first_element = true;
@@ -117,8 +113,7 @@ public class Collections {
 	 *            Suffix of the output string
 	 * @return
 	 */
-	public static <K, V> String stringOfMap(Map<K, V> map, String sep,
-			String mapto, String prefix, String suffix) {
+	public static <K, V> String stringOfMap(Map<K, V> map, String sep, String mapto, String prefix, String suffix) {
 		StringBuilder res = new StringBuilder(prefix == null ? "" : prefix);
 		if (map != null) {
 			Set<Map.Entry<K, V>> entries = map.entrySet();

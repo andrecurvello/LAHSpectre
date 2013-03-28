@@ -24,8 +24,7 @@ public class CommandLineArguments {
 	 * `(`, `)` (command grouping), `>`, `|>` (output redirection), `<` (input
 	 * redirection) and control characters `&&` (logical and), `||` (logical or)
 	 */
-	public static final Pattern argument_pattern = Pattern
-			.compile("('[^']*'|\"[^\"]*\"|([^\\s]|\\\\s)+)\\s*");
+	public static final Pattern argument_pattern = Pattern.compile("('[^']*'|\"[^\"]*\"|([^\\s]|\\\\s)+)\\s*");
 
 	/**
 	 * Parse a single <em>command</em> (not a shell or batch <em>script</em>) to
@@ -55,8 +54,7 @@ public class CommandLineArguments {
 		}
 
 		// if we cannot match the whole command, this means there is error
-		return (e < command.length()) ? null : args.toArray(new String[args
-				.size()]);
+		return (e < command.length()) ? null : args.toArray(new String[args.size()]);
 	}
 
 	/**
@@ -116,10 +114,8 @@ public class CommandLineArguments {
 		}
 
 		if (BuildConfig.DEBUG)
-			System.out
-					.println("parseCommandLineArguments : Result = "
-							+ Collections.stringOfMap(arg_map, ", ", "-->",
-									"[ ", " ]"));
+			System.out.println("parseCommandLineArguments : Result = "
+					+ Collections.stringOfMap(arg_map, ", ", "-->", "[ ", " ]"));
 
 		return arg_map;
 	}
