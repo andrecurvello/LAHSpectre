@@ -49,6 +49,8 @@ public class TimedShell {
 
 	}
 
+	public static final int DUMMY_EXIT_VALUE = -1;
+
 	/**
 	 * Exit value of the external process
 	 */
@@ -145,26 +147,43 @@ public class TimedShell {
 	public synchronized int fork(String[] command, File directory, String[] extra_environment,
 			IBufferProcessor stdout_processor, IBufferProcessor stdin_producer, long timeout) throws Exception {
 		is_timeout = false;
-		ProcessBuilder proc_builder = new ProcessBuilder(command).directory(directory).redirectErrorStream(true);
-		// Set up the environment for the process
-		Map<String, String> env = proc_builder.environment();
-		// Set the global (exported) variables
-		for (Entry<String, String> e : global_environment.entrySet())
-			env.put(e.getKey(), e.getValue());
-		// Set the extra variables
-		if (extra_environment != null) {
-			for (int i = 0; i < extra_environment.length; i += 2)
-				env.put(extra_environment[i], extra_environment[i + 1]);
-		}
-		if (BuildConfig.DEBUG) {
-			System.out.println("TimedShell: execute " + Collections.stringOfArray(command, ",", "[", "]") + " @ "
-					+ directory.getAbsolutePath() + " with environment");
-			for (Entry<String, String> e : proc_builder.environment().entrySet()) {
-				System.out.println(e.getKey() + " = " + e.getValue());
+
+		try {
+			ProcessBuilder proc_builder = new ProcessBuilder(command).directory(directory).redirectErrorStream(true);
+			// Set up the environment for the process
+			Map<String, String> env = proc_builder.environment();
+			// Set the global (exported) variables
+			for (Entry<String, String> e : global_environment.entrySet())
+				env.put(e.getKey(), e.getValue());
+			// Set the extra variables
+			if (extra_environment != null) {
+				for (int i = 0; i < extra_environment.length; i += 2)
+					env.put(extra_environment[i], extra_environment[i + 1]);
 			}
+			if (BuildConfig.DEBUG) {
+				System.out.println("TimedShell: execute " + Collections.stringOfArray(command, ",", "[", "]") + " @ "
+						+ directory.getAbsolutePath() + " with environment");
+				for (Entry<String, String> e : proc_builder.environment().entrySet()) {
+					System.out.println(e.getKey() + " = " + e.getValue());
+				}
+			}
+			// Start the new process
+			process = proc_builder.start();
+		} catch (UnsupportedOperationException exception) {
+			// Cannot build the environment, try an alternative using Runtime
+			String[] env = new String[global_environment.size()
+					+ (extra_environment == null ? 0 : extra_environment.length / 2)];
+			int i = 0;
+			for (Entry<String, String> e : global_environment.entrySet())
+				env[i++] = e.getKey() + "=" + e.getValue();
+			if (extra_environment != null) {
+				for (int j = 0; j < extra_environment.length; j += 2)
+					env[i++] = extra_environment[j] + "=" + extra_environment[j + 1];
+			}
+			process = Runtime.getRuntime().exec(command, env, directory);
+			// TODO redirect error stream!?
 		}
-		process = proc_builder.start();
-		exit_value = -1;
+		exit_value = DUMMY_EXIT_VALUE;
 
 		// Schedule the timer to time-out the process (if necessary)
 		// Note that we have to recreate the TimerTask again and again since
