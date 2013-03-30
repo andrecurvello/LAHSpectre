@@ -1,5 +1,9 @@
 package lah.spectre;
 
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.Arrays;
+
 /**
  * Collection of methods to process file name and extension
  * 
@@ -7,6 +11,48 @@ package lah.spectre;
  * 
  */
 public class FileName {
+
+	/**
+	 * Prefix for a temporary file name
+	 */
+	private static final String TEMP_FILE_NAME = "temp.spectreget";
+
+	/**
+	 * Pick a valid file name for a temporary file in a directory.
+	 * 
+	 * @param directory
+	 *            The directory in which we want to create a new temp file,
+	 *            assuming to be an existing & readable directory
+	 * @return A name for a new file in output_directory, this file name is of
+	 *         the form {@link SpectreGet#TEMP_FILE_NAME} followed by a suffix
+	 *         of form "(<integer>)" such as (0), (1), ...
+	 */
+	public static String createNewTemporaryFileName(String directory) {
+		assert (directory != null);
+
+		File dir = new File(directory);
+		assert (dir.exists() && dir.canRead());
+
+		// List the files starting with {@link SpectreGet#TEMP_FILE_NAME}
+		String[] tmpfiles = dir.list(new FilenameFilter() {
+
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.startsWith(TEMP_FILE_NAME);
+			}
+		});
+
+		if (tmpfiles.length == 0)
+			return TEMP_FILE_NAME + "(0)";
+
+		// Select a new suffix
+		Arrays.sort(tmpfiles);
+		for (int i = 0;; i++) {
+			String fname = TEMP_FILE_NAME + "(" + i + ")";
+			if (Arrays.binarySearch(tmpfiles, fname) >= 0)
+				return fname;
+		}
+	}
 
 	/**
 	 * Get the file extension
@@ -74,4 +120,5 @@ public class FileName {
 	public static String replaceFileExt(String file_name, String new_ext) {
 		return removeFileExtension(file_name) + "." + new_ext;
 	}
+
 }
