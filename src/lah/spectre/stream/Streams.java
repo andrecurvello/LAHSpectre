@@ -47,9 +47,8 @@ public class Streams {
 	}
 
 	/**
-	 * Pipe an input stream directly into an output stream; this is useful for
-	 * various I/O purposes. The caller is in charge of time out this method to
-	 * account for blocking input.
+	 * Pipe an input stream directly into an output stream; this is useful for various I/O purposes. The caller is in
+	 * charge of time out this method to account for blocking input.
 	 * 
 	 * @param inpstr
 	 *            {@link InputStream} to take from
@@ -76,17 +75,17 @@ public class Streams {
 	}
 
 	/**
-	 * Higher-order method to process a stream; note that the stream is not
-	 * closed at the end of the processing! This method is blocking until the
-	 * stream is fully processed or the calling thread is interrupted.
+	 * Higher-order method to process a stream; note that the stream is not closed at the end of the processing! This
+	 * method is blocking until the stream is fully processed or the calling thread is interrupted.
 	 * 
-	 * @param stream
-	 *            {@link InputStream} to read from
 	 * @param stream_processor
 	 *            Higher order byte buffer processor
+	 * @param stream
+	 *            {@link InputStream} to read from
+	 * 
 	 * @throws Exception
 	 */
-	public static void processStream(final InputStream stream, final IBufferProcessor stream_processor)
+	public static void processStream(final IBufferProcessor stream_processor, final InputStream stream)
 			throws Exception {
 		if (stream == null)
 			return;
@@ -130,13 +129,12 @@ public class Streams {
 	}
 
 	/**
-	 * Read an {@link InputStream} until the end into a {@link String}, return
-	 * the partially read content if the running thread is interrupted
+	 * Read an {@link InputStream} until the end into a {@link String}, return the partially read content if the running
+	 * thread is interrupted
 	 * 
 	 * @param inpstr
 	 *            {@link InputStream} to read from
-	 * @return the {@link String} containing all bytes read from the stream till
-	 *         end or right before interruption
+	 * @return the {@link String} containing all bytes read from the stream till end or right before interruption
 	 * @throws IOException
 	 *             if the stream cannot be read
 	 */
@@ -173,9 +171,8 @@ public class Streams {
 	}
 
 	/**
-	 * Higher-order method to process a stream; note that the stream is not
-	 * closed at the end of the processing! This method is blocking until the
-	 * stream is fully processed or the calling thread is interrupted.
+	 * Higher-order method to process a stream; note that the stream is not closed at the end of the processing! This
+	 * method is blocking until the stream is fully processed or the calling thread is interrupted.
 	 * 
 	 * @param stream
 	 *            {@link OutputStream} to write to

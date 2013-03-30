@@ -11,8 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * Generic task manager to ease management of tasks such as adding, scheduling,
- * canceling, etc
+ * Generic task manager to ease management of tasks such as adding, scheduling, canceling, etc
  * 
  * @author L.A.H.
  * 
@@ -22,8 +21,7 @@ import java.util.concurrent.Future;
 public class TaskManager<T extends Task> {
 
 	/**
-	 * {@link TimerTask} to periodically check tasks' status and schedule (i.e.
-	 * submit) pending executable tasks
+	 * {@link TimerTask} to periodically check tasks' status and schedule (i.e. submit) pending executable tasks
 	 * 
 	 * @author L.A.H.
 	 * 

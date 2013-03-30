@@ -1,8 +1,8 @@
 package lah.spectre.interfaces;
 
 /**
- * Interface for objects that produces resources and call the corresponding
- * listener when it is available for processing.
+ * Interface for objects that produces resources and call the corresponding listener when it is available for
+ * processing.
  * 
  * @author L.A.H.
  * 
@@ -14,8 +14,7 @@ package lah.spectre.interfaces;
 public interface IResourceSupplier<K, R> {
 
 	/**
-	 * Interface for general object that consumes resources produced by
-	 * {@link IResourceSupplier}.
+	 * Interface for general object that consumes resources produced by {@link IResourceSupplier}.
 	 * 
 	 * @author L.A.H.
 	 * 

@@ -25,8 +25,7 @@ public class StreamRedirector implements IBufferProcessor {
 	};
 
 	/**
-	 * An {@link IBufferProcessor} that simply write the buffer to standard
-	 * output
+	 * An {@link IBufferProcessor} that simply write the buffer to standard output
 	 */
 	public static final IBufferProcessor STDOUT = new IBufferProcessor() {
 

@@ -1,9 +1,8 @@
 package lah.spectre.stream;
 
 /**
- * Implementation of {@link IBufferProcessor} that accumulate the buffers into a
- * single {@link StringBuilder}. This is handy to collect standard output of an
- * external process.
+ * Implementation of {@link IBufferProcessor} that accumulate the buffers into a single {@link StringBuilder}. This is
+ * handy to collect standard output of an external process.
  * 
  * @author L.A.H.
  * 

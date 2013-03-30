@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Various static array and collection manipulation methods such as obtain
- * human--friendly {@link String} representation select a sub--collection etc
+ * Various static array and collection manipulation methods such as obtain human--friendly {@link String} representation
+ * select a sub--collection etc
  * 
  * @author L.A.H.
  * 

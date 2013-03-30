@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.TimeoutException;
 
 import lah.spectre.BuildConfig;
@@ -23,55 +22,34 @@ import lah.spectre.stream.Streams;
 public class TimedShell {
 
 	/**
-	 * Extension of {@link TimerTask} that will kill the currently executing
-	 * process running in background
-	 * 
-	 * @author L.A.H.
-	 * 
+	 * Exit value return in case of error
 	 */
-	private class ProcessKillingTimerTask extends TimerTask {
+	public static final int DUMMY_EXIT_VALUE = -1, PROCESS_EXIT_OK = 0;
 
-		@Override
-		public void run() {
-			// Set time out flag
-			is_timeout = true;
-
-			// And destroy the running process; assuming that once the
-			// process is destroyed, its standard output reaches
-			// end-of-file.
-			if (process != null)
-				process.destroy();
-
-			// Note: must not close streams here because we might still be
-			// processing the standard output; simply destroy the process so
-			// that the stream is EOF, the processing exits naturally.
+	/**
+	 * Destroy the process, wait for it to be completely destroyed and close all resources (stdin, stdout, stderr
+	 * streams).
+	 */
+	public static int kill(Process process) {
+		if (process != null) {
+			process.destroy();
+			try {
+				return process.waitFor();
+			} catch (Exception e) {
+				return DUMMY_EXIT_VALUE;
+			} finally {
+				Streams.closeStream(process.getInputStream());
+				Streams.closeStream(process.getOutputStream());
+				Streams.closeStream(process.getErrorStream());
+			}
 		}
-
+		return PROCESS_EXIT_OK;
 	}
 
-	public static final int DUMMY_EXIT_VALUE = -1;
-
 	/**
-	 * Exit value of the external process
+	 * Map to store exported environment
 	 */
-	private int exit_value;
-
 	private Map<String, String> global_environment = new HashMap<String, String>();
-
-	/**
-	 * Flag to indicate if the process exceeds its time out limit
-	 */
-	private boolean is_timeout;
-
-	/**
-	 * Current executing process
-	 */
-	private Process process;
-
-	/**
-	 * {@link TimerTask} to kill the running process when time out is reached
-	 */
-	private TimerTask process_killer;
 
 	/**
 	 * Global timer to timeout the external process
@@ -98,56 +76,51 @@ public class TimedShell {
 	 *            the working directory to run
 	 * @return exit value of the command
 	 * @throws Exception
-	 *             should be either {@link IOException} or
-	 *             {@link TimeoutException}
+	 *             should be either {@link IOException} or {@link TimeoutException}
 	 */
 	public int fork(String[] command, File directory) throws Exception {
 		return fork(command, directory, null, 0);
 	}
 
-	public synchronized int fork(String[] command, File directory, IBufferProcessor stdout_processor, long timeout)
-			throws Exception {
+	public int fork(String[] command, File directory, IBufferProcessor stdout_processor, long timeout) throws Exception {
 		return fork(command, directory, null, stdout_processor, null, timeout);
 	}
 
 	/**
 	 * Fork a new process to interact with a command
 	 * 
+	 * IMPORTANT REMARK: Make sure that the standard output processor is NOT IN USED if it has some STATE.
+	 * 
 	 * @param command
 	 *            The (tokenized) command to run
 	 * @param directory
 	 *            The working directory to run the command
 	 * @param extra_environment
-	 *            The additional environment or modification of existing value
-	 *            where the environment variables are at even positions and
-	 *            their values are at odd positions (i.e. the value of the
-	 *            environment variable extra_environment[2*n] will be set to
-	 *            extra_environment[2*n+1]). Note that we expect the length of
-	 *            the array to be even!
+	 *            The additional environment or modification of existing value where the environment variables are at
+	 *            even positions and their values are at odd positions (i.e. the value of the environment variable
+	 *            extra_environment[2*n] will be set to extra_environment[2*n+1]). Note that we expect the length of the
+	 *            array to be even!
 	 * 
-	 *            The process to be created will execute with the current system
-	 *            environment if this input is {@code null}
+	 *            The process to be created will execute with the current system environment if this input is
+	 *            {@code null}
 	 * @param stdout_processor
-	 *            Object to process the standard output, if this input is
-	 *            {@literal null}, the output is simply ignored (the effect is
-	 *            similar to sending to /dev/null)
+	 *            Object to process the standard output, if this input is {@literal null}, the output is simply ignored
+	 *            (the effect is similar to sending to /dev/null)
 	 * @param stdin_producer
 	 *            Object to interact with the external process
 	 * @param timeout
-	 *            Maximum allowable time for the process to execute if greater
-	 *            than 0; input 0 means no timing or unlimited allowance
+	 *            Maximum allowable time for the process to execute if greater than 0; input 0 means no timing or
+	 *            unlimited allowance
 	 * @return The exit value of the executed command
 	 * @throws Exception
-	 *             {@link TimeoutException} if the timeout is reached and the
-	 *             process has not finished; or any exception raised by
-	 *             <b>stdout_processor</b> while processing the standard output.
-	 *             {@link ArrayIndexOutOfBoundsException} if the environment
-	 *             array is of odd length.
+	 *             {@link TimeoutException} if the timeout is reached and the process has not finished; or any exception
+	 *             raised by <b>stdout_processor</b> while processing the standard output.
+	 *             {@link ArrayIndexOutOfBoundsException} if the environment array is of odd length.
 	 */
-	public synchronized int fork(String[] command, File directory, String[] extra_environment,
-			IBufferProcessor stdout_processor, IBufferProcessor stdin_producer, long timeout) throws Exception {
-		is_timeout = false;
-
+	public int fork(String[] command, File directory, String[] extra_environment, IBufferProcessor stdout_processor,
+			IBufferProcessor stdin_producer, long timeout) throws Exception {
+		// 1. Create the process
+		Process process;
 		try {
 			ProcessBuilder proc_builder = new ProcessBuilder(command).directory(directory).redirectErrorStream(true);
 			// Set up the environment for the process
@@ -183,47 +156,45 @@ public class TimedShell {
 			process = Runtime.getRuntime().exec(command, env, directory);
 			// TODO redirect error stream!?
 		}
-		exit_value = DUMMY_EXIT_VALUE;
 
-		// Schedule the timer to time-out the process (if necessary)
-		// Note that we have to recreate the TimerTask again and again since
-		// TimerTask can only be scheduled ONCE or PERIODICALLY!
+		// 2. Schedule the timer to time-out the process (if necessary)
+		// Note that we have to recreate the TimerTask again and again since TimerTask can only be scheduled ONCE or
+		// repeated PERIODICALLY!
+		ProcessKiller process_killer = null;
 		if (timeout > 0) {
-			process_killer = new ProcessKillingTimerTask();
+			process_killer = new ProcessKiller(process);
 			process_timer.schedule(process_killer, timeout);
 		}
 
+		// 3. Process generated standard output
 		try {
-			// Process the standard output; this call is blocking until
-			// (i) the process exits NATURALLY;
-			// (ii) the process is DESTROYED by the process_killer TimerTask;
-			// (iii) the stdout consuming thread is interrupted.
-			Streams.processStream(process.getInputStream(), stdout_processor);
-
-			// Time out occurs, raise exception after finally-clause is done!
-			if (is_timeout)
-				throw new TimeoutException("Timeout while executing " + command[0]);
-
-			// Note: the finally is executed so that the process definitely
-			// exits and so we can safely return the exit value
-			return exit_value;
+			// Note: the following call is blocking until (i) the process exits NATURALLY; (ii) the process is DESTROYED
+			// by the process_killer object; (iii) the stdout consuming (i.e. current) thread is interrupted.
+			Streams.processStream(stdout_processor, process.getInputStream());
 		} finally {
-			// Cancel the scheduled killing to make sure that the next
-			// command is not accidentally killed
-			if (process_killer != null) {
+			// Cancel the scheduled killing if applicable
+			if (process_killer != null)
 				process_killer.cancel();
-				process_killer = null;
-			}
-
-			// Destroy the process if case (iii) happens or exception occurs
-			// wait for the process to be completely destroyed and close all
-			// resources as well
-			kill();
+			// Destroy the process if case (iii) happens or exception occurs wait for the process to be completely
+			// destroyed and close all resources as well
+			kill(process);
+			// Note: this finally block is presumably always executed so that the process definitely exits and so we can
+			// safely invoke process.exitValue() on the process afterward
 		}
+
+		// 4. Return exit value
+		if (process_killer != null && process_killer.isTimeOut())
+			// Time out occurs, raise exception after finally-clause is done!
+			// TODO Logically, isTimeOut might be true even if the process does not exceed time limit! This happens when
+			// the process exits gracefully; but right after that, the cancel is run. This case is rare (i.e. the
+			// process must take exactly the "timeout" amount to execute) but feasible.
+			throw new TimeoutException("Timeout while executing " + command[0]);
+		else
+			return process.exitValue();
 	}
 
-	public synchronized int fork(String[] command, File directory, String[] extra_environment,
-			IBufferProcessor stdout_processor, long timeout) throws Exception {
+	public int fork(String[] command, File directory, String[] extra_environment, IBufferProcessor stdout_processor,
+			long timeout) throws Exception {
 		return fork(command, directory, extra_environment, stdout_processor, null, timeout);
 	}
 
@@ -231,25 +202,6 @@ public class TimedShell {
 		if (variable == null)
 			return null;
 		return (global_environment.containsKey(variable)) ? global_environment.get(variable) : System.getenv(variable);
-	}
-
-	/**
-	 * Destroy the process, wait for it to be completely destroyed and close all
-	 * resources (stdin, stdout, stderr streams).
-	 */
-	private void kill() {
-		if (process != null) {
-			process.destroy();
-			try {
-				exit_value = process.waitFor();
-			} catch (Exception e) {
-				// Note that exit_value is not modified if exception occurs
-				// in which case, it retains value dummy value -1
-			}
-			Streams.closeStream(process.getInputStream());
-			Streams.closeStream(process.getOutputStream());
-			Streams.closeStream(process.getErrorStream());
-		}
 	}
 
 }

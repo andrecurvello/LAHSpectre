@@ -1,8 +1,8 @@
 package lah.spectre.stream;
 
 /**
- * Interface for byte[] buffer processing classes; concrete implementations are
- * {@link StreamRedirector} and {@link StringAccumulator}.
+ * Interface for byte[] buffer processing classes; concrete implementations are {@link StreamRedirector} and
+ * {@link StringAccumulator}.
  * 
  * @author L.A.H.
  * 

@@ -7,8 +7,8 @@ import java.net.URLConnection;
 import lah.spectre.stream.Streams;
 
 /**
- * This class functions as a general purpose network resource retrieval manager.
- * It manages list of download files, support download resume and many more.
+ * This class functions as a general purpose network resource retrieval manager. It manages list of download files,
+ * support download resume and many more.
  * 
  * @author L.A.H.
  * 

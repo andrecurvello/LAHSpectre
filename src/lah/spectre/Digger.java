@@ -14,9 +14,8 @@ import org.kamranzafar.jtar.TarInputStream;
 import org.tukaani.xz.XZInputStream;
 
 /**
- * This class serves as a universal {@link InputStream} for streams of
- * compressed (a file containing compressed data) or archived (a file
- * encapsulating a whole directory structure) input.
+ * This class serves as a universal {@link InputStream} for streams of compressed (a file containing compressed data) or
+ * archived (a file encapsulating a whole directory structure) input.
  */
 public class Digger extends InputStream {
 
@@ -62,8 +61,7 @@ public class Digger extends InputStream {
 	}
 
 	/**
-	 * Get an {@link InputStream} to the decompressed content of a compressed
-	 * file represented by a {@link File} object.
+	 * Get an {@link InputStream} to the decompressed content of a compressed file represented by a {@link File} object.
 	 * 
 	 * @param format
 	 * @param compressed_file
@@ -75,8 +73,7 @@ public class Digger extends InputStream {
 	}
 
 	/**
-	 * Get an {@link InputStream} to the decompressed content of a compressed
-	 * stream
+	 * Get an {@link InputStream} to the decompressed content of a compressed stream
 	 * 
 	 * @param format
 	 * @param compressed_src
@@ -88,8 +85,7 @@ public class Digger extends InputStream {
 	}
 
 	/**
-	 * Get an {@link InputStream} to the decompressed content of a compressed
-	 * file given the {@link String} path to it.
+	 * Get an {@link InputStream} to the decompressed content of a compressed file given the {@link String} path to it.
 	 * 
 	 * @param format
 	 * @param compressed_file_path
@@ -101,8 +97,7 @@ public class Digger extends InputStream {
 	}
 
 	/**
-	 * Unarchive a tar stream into the file system, relocating them using the
-	 * locator
+	 * Unarchive a tar stream into the file system, relocating them using the locator
 	 * 
 	 * @param tar_stream
 	 * @param relocator

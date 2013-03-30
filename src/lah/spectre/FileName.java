@@ -21,11 +21,10 @@ public class FileName {
 	 * Pick a valid file name for a temporary file in a directory.
 	 * 
 	 * @param directory
-	 *            The directory in which we want to create a new temp file,
-	 *            assuming to be an existing & readable directory
-	 * @return A name for a new file in output_directory, this file name is of
-	 *         the form {@link SpectreGet#TEMP_FILE_NAME} followed by a suffix
-	 *         of form "(<integer>)" such as (0), (1), ...
+	 *            The directory in which we want to create a new temp file, assuming to be an existing & readable
+	 *            directory
+	 * @return A name for a new file in output_directory, this file name is of the form
+	 *         {@link SpectreGet#TEMP_FILE_NAME} followed by a suffix of form "(<integer>)" such as (0), (1), ...
 	 */
 	public static String createNewTemporaryFileName(String directory) {
 		assert (directory != null);
@@ -85,8 +84,7 @@ public class FileName {
 	}
 
 	/**
-	 * Trim file extension, copied from {@link http
-	 * ://stackoverflow.com/questions
+	 * Trim file extension, copied from {@link http ://stackoverflow.com/questions
 	 * /941272/how-do-i-trim-a-file-extension-from-a-string-in-java}
 	 * 
 	 * @param file_name

@@ -11,9 +11,8 @@ import lah.spectre.stream.BufferProcessingThread;
 import lah.spectre.stream.IBufferProcessor;
 
 /**
- * This class is an extension of the standard {@link Process} with the extra
- * capability of being timed out. It also provides convenient ways to handle
- * generated standard output.
+ * This class is an extension of the standard {@link Process} with the extra capability of being timed out. It also
+ * provides convenient ways to handle generated standard output.
  * 
  * @author L.A.H.
  * 
@@ -63,8 +62,7 @@ public class TimedProcess {
 	}
 
 	/**
-	 * Kill the process and wait for the standard output processing thread to
-	 * finish with the remaining output
+	 * Kill the process and wait for the standard output processing thread to finish with the remaining output
 	 */
 	public void destroy() {
 		// Kill the process and close resources
@@ -87,8 +85,7 @@ public class TimedProcess {
 	}
 
 	/**
-	 * Destroy the running process and close all associated resources
-	 * (input/output streams)
+	 * Destroy the running process and close all associated resources (input/output streams)
 	 */
 	public void kill() {
 		try {
