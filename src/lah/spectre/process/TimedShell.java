@@ -22,13 +22,12 @@ import lah.spectre.stream.Streams;
 public class TimedShell {
 
 	/**
-	 * Exit value return in case of error
-	 */
-	public static final int DUMMY_EXIT_VALUE = -1, PROCESS_EXIT_OK = 0;
-
-	/**
 	 * Destroy the process, wait for it to be completely destroyed and close all resources (stdin, stdout, stderr
 	 * streams).
+	 * 
+	 * @param process
+	 *            The process to kill
+	 * @return Exit value of process or dummy value 0 in case of exception
 	 */
 	public static int kill(Process process) {
 		if (process != null) {
@@ -36,14 +35,14 @@ public class TimedShell {
 			try {
 				return process.waitFor();
 			} catch (Exception e) {
-				return DUMMY_EXIT_VALUE;
+				return 0;
 			} finally {
 				Streams.closeStream(process.getInputStream());
 				Streams.closeStream(process.getOutputStream());
 				Streams.closeStream(process.getErrorStream());
 			}
 		}
-		return PROCESS_EXIT_OK;
+		return 0;
 	}
 
 	/**
