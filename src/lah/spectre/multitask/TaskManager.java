@@ -1,12 +1,12 @@
 package lah.spectre.multitask;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,18 +32,16 @@ public class TaskManager<T extends Task> {
 
 		@Override
 		public void run() {
-			// synchronized (pending_tasks_queue) {
-			Iterator<T> pending_task_iterator = pending_tasks_queue.iterator();
-			while (pending_task_iterator.hasNext()) {
-				T pending_task = pending_task_iterator.next();
-				if (pending_task.isExecutable()) {
-					pending_task_iterator.remove();
-					task_executor.submit(pending_task);
-					Future<?> future = task_executor.submit(pending_task);
-					future_id_table.put(System.identityHashCode(pending_task), future);
+			synchronized (pending_tasks_queue) {
+				Iterator<T> pending_task_iterator = pending_tasks_queue.iterator();
+				while (pending_task_iterator.hasNext()) {
+					T pending_task = pending_task_iterator.next();
+					if (pending_task.isExecutable()) {
+						pending_task_iterator.remove();
+						task_future_table.put(pending_task, task_executor.submit(pending_task));
+					}
 				}
 			}
-			// }
 		}
 
 	}
@@ -51,17 +49,12 @@ public class TaskManager<T extends Task> {
 	/**
 	 * Time between two scheduling, set to 100 miliseconds
 	 */
-	private static final int SCHEDULE_PERIOD = 100;
+	private static final int SCHEDULE_PERIOD = 200;
 
 	/**
 	 * List of task added
 	 */
 	private List<T> added_task_list;
-
-	/**
-	 * Table mapping task ID to {@link Future} objects for cancellation
-	 */
-	private Map<Integer, Future<?>> future_id_table;
 
 	/**
 	 * List of tasks waiting to be scheduled/submitted for execution
@@ -74,16 +67,17 @@ public class TaskManager<T extends Task> {
 	private ExecutorService task_executor;
 
 	/**
-	 * We use the address of the task to identify it
+	 * Table mapping each task to its {@link Future} for cancellation
 	 */
-	private Map<Integer, T> task_id_table;
+	private Map<T, Future<?>> task_future_table;
 
 	public TaskManager() {
-		task_id_table = new TreeMap<Integer, T>();
-		future_id_table = new TreeMap<Integer, Future<?>>();
+		// prepare internal data structures
+		task_future_table = new HashMap<T, Future<?>>();
 		task_executor = Executors.newSingleThreadExecutor();
 		added_task_list = new ArrayList<T>();
 		pending_tasks_queue = new ConcurrentLinkedQueue<T>();
+
 		// periodically submit executable tasks
 		TimerTask scheduling_task = new TaskScheduler();
 		new Timer().scheduleAtFixedRate(scheduling_task, 0, SCHEDULE_PERIOD);
@@ -97,19 +91,15 @@ public class TaskManager<T extends Task> {
 	public void add(T task) {
 		if (task == null)
 			return;
-		if (!added_task_list.contains(task)) {
-			task_id_table.put(System.identityHashCode(task), task);
-			added_task_list.add(task);
+		// add task if it is not already in the manage list
+		synchronized (added_task_list) {
+			if (!added_task_list.contains(task))
+				added_task_list.add(task);
 		}
-		// submit the task if it is executable; otherwise, put it to the
-		// list of tasks to be periodically checked and submitted by the
-		// scheduling thread
-		if (task.isExecutable()) {
-			task_executor.submit(task);
-		} else {
-			// synchronized (pending_tasks_queue) {
-			pending_tasks_queue.add(task);
-			// }
+		// enqueue task for scheduling
+		synchronized (pending_tasks_queue) {
+			if (!pending_tasks_queue.contains(task))
+				pending_tasks_queue.add(task);
 		}
 	}
 
@@ -122,13 +112,15 @@ public class TaskManager<T extends Task> {
 		if (task == null)
 			return;
 		// remove the task if it is pending for execution
-		// synchronized (pending_tasks_queue) {
-		pending_tasks_queue.remove(task);
-		// }
-		// and cancel the task if it is executing
-		Future<?> task_future = future_id_table.remove(System.identityHashCode(task));
-		if (task_future != null)
-			task_future.cancel(true);
+		synchronized (pending_tasks_queue) {
+			pending_tasks_queue.remove(task);
+		}
+		// cancel the task if it is executing
+		synchronized (task_future_table) {
+			Future<?> task_future = task_future_table.remove(task);
+			if (task_future != null)
+				task_future.cancel(true);
+		}
 	}
 
 	/**
@@ -146,11 +138,10 @@ public class TaskManager<T extends Task> {
 	 * @param id
 	 */
 	public void remove(T task) {
-		int id = System.identityHashCode(task);
-		task_id_table.remove(id);
-		added_task_list.remove(task);
-		if (task != null)
-			cancel(task);
+		synchronized (added_task_list) {
+			added_task_list.remove(task);
+		}
+		cancel(task);
 	}
 
 }

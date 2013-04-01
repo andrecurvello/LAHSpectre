@@ -4,7 +4,9 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * General interface for a task extending {@link Runnable} with a method to indicate whether an instance is ready for
- * execution; if it is, it can be submitted to the {@link ExecutorService} for execution.
+ * execution; if it is, it can be submitted to the {@link ExecutorService} for execution. Object implement this
+ * interface SHOULD NOT override the equal() method because task manager uses {@link System#identityHashCode(Object)} to
+ * determine equality.
  * 
  * @author L.A.H.
  * 
