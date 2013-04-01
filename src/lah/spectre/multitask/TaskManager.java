@@ -1,11 +1,13 @@
 package lah.spectre.multitask;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -30,16 +32,18 @@ public class TaskManager<T extends Task> {
 
 		@Override
 		public void run() {
-			synchronized (pending_task_list) {
-				for (T task : pending_task_list) {
-					if (task.isExecutable()) {
-						task_executor.submit(task);
-						pending_task_list.remove(task);
-						Future<?> future = task_executor.submit(task);
-						future_id_table.put(System.identityHashCode(task), future);
-					}
+			// synchronized (pending_tasks_queue) {
+			Iterator<T> pending_task_iterator = pending_tasks_queue.iterator();
+			while (pending_task_iterator.hasNext()) {
+				T pending_task = pending_task_iterator.next();
+				if (pending_task.isExecutable()) {
+					pending_task_iterator.remove();
+					task_executor.submit(pending_task);
+					Future<?> future = task_executor.submit(pending_task);
+					future_id_table.put(System.identityHashCode(pending_task), future);
 				}
 			}
+			// }
 		}
 
 	}
@@ -62,7 +66,7 @@ public class TaskManager<T extends Task> {
 	/**
 	 * List of tasks waiting to be scheduled/submitted for execution
 	 */
-	private List<T> pending_task_list;
+	private ConcurrentLinkedQueue<T> pending_tasks_queue;
 
 	/**
 	 * An {@link ExecutorService} to schedule execution of tasks in background
@@ -79,7 +83,7 @@ public class TaskManager<T extends Task> {
 		future_id_table = new TreeMap<Integer, Future<?>>();
 		task_executor = Executors.newSingleThreadExecutor();
 		added_task_list = new ArrayList<T>();
-		pending_task_list = new ArrayList<T>();
+		pending_tasks_queue = new ConcurrentLinkedQueue<T>();
 		// periodically submit executable tasks
 		TimerTask scheduling_task = new TaskScheduler();
 		new Timer().scheduleAtFixedRate(scheduling_task, 0, SCHEDULE_PERIOD);
@@ -103,9 +107,9 @@ public class TaskManager<T extends Task> {
 		if (task.isExecutable()) {
 			task_executor.submit(task);
 		} else {
-			synchronized (pending_task_list) {
-				pending_task_list.add(task);
-			}
+			// synchronized (pending_tasks_queue) {
+			pending_tasks_queue.add(task);
+			// }
 		}
 	}
 
@@ -118,9 +122,9 @@ public class TaskManager<T extends Task> {
 		if (task == null)
 			return;
 		// remove the task if it is pending for execution
-		synchronized (pending_task_list) {
-			pending_task_list.remove(task);
-		}
+		// synchronized (pending_tasks_queue) {
+		pending_tasks_queue.remove(task);
+		// }
 		// and cancel the task if it is executing
 		Future<?> task_future = future_id_table.remove(System.identityHashCode(task));
 		if (task_future != null)
