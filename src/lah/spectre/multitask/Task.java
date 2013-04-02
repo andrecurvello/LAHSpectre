@@ -21,6 +21,9 @@ public interface Task extends Runnable {
 	 * In another context, tasks might require resources to be available such as displaying the image requires the image
 	 * file to be retrieved over the network.
 	 * 
+	 * WARNING NOTE: This method is EXTREMELY state-sensitive. Therefore, implementations SHOULD synchronize all
+	 * state-changing methods which affect this method.
+	 * 
 	 * @return {@code true} if this task is executable; {@code false} otherwise.
 	 */
 	boolean isExecutable();

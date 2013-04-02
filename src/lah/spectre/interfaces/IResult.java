@@ -17,11 +17,11 @@ public interface IResult extends IExceptionWrapper {
 	 * 
 	 * @return
 	 */
-	boolean isComplete();
+	boolean isDone();
 
 	/**
 	 * Indicate whether the result is successfully computed. This call should only be valid when
-	 * {@link IResult#isComplete()} returns {@literal true} and must return {@literal false} whenever
+	 * {@link IResult#isDone()} returns {@literal true} and must return {@literal false} whenever
 	 * {@link IResult#hasException()} return {@literal true}. Note that, even if the method returns no exception, it
 	 * does not mean that the result is successful.
 	 * 

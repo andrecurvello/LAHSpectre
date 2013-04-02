@@ -85,8 +85,7 @@ public class Streams {
 	 * 
 	 * @throws Exception
 	 */
-	public static void processStream(final IBufferProcessor stream_processor, final InputStream stream)
-			throws Exception {
+	public static void processStream(IBufferProcessor stream_processor, InputStream stream) throws Exception {
 		if (stream == null)
 			return;
 		int count;
@@ -97,6 +96,10 @@ public class Streams {
 			if (stream_processor != null)
 				stream_processor.processBuffer(buffer, count);
 		}
+	}
+
+	public static void processStream(IBufferProcessor[] stream_processors, InputStream[] streams) throws Exception {
+		throw new UnsupportedOperationException("Parallel stream processing is unsupported!");
 	}
 
 	/**
@@ -124,8 +127,7 @@ public class Streams {
 	 *             if the file cannot be read (for example, access denied)
 	 */
 	public static String readTextFile(String path_to_file) throws FileNotFoundException, IOException {
-		File file = new File(path_to_file);
-		return readTextFile(file);
+		return readTextFile(new File(path_to_file));
 	}
 
 	/**
@@ -174,13 +176,14 @@ public class Streams {
 	 * Higher-order method to process a stream; note that the stream is not closed at the end of the processing! This
 	 * method is blocking until the stream is fully processed or the calling thread is interrupted.
 	 * 
-	 * @param stream
-	 *            {@link OutputStream} to write to
 	 * @param stream_producer
 	 *            Higher order producer to produce byte buffers
+	 * @param stream
+	 *            {@link OutputStream} to write to
+	 * 
 	 * @throws Exception
 	 */
-	public static void supplyStream(final OutputStream stream, final IBufferProducer stream_producer) throws Exception {
+	public static void supplyStream(IBufferProducer stream_producer, OutputStream stream) throws Exception {
 		if (stream == null || stream_producer == null)
 			return;
 		int count;
