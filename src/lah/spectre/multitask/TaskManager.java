@@ -1,9 +1,8 @@
 package lah.spectre.multitask;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -19,11 +18,6 @@ import java.util.concurrent.Future;
 public class TaskManager<T extends Runnable> {
 
 	/**
-	 * List of task added
-	 */
-	private List<T> added_tasks_list;
-
-	/**
 	 * An {@link ExecutorService} to schedule execution of tasks in background
 	 */
 	private ExecutorService task_executor;
@@ -33,36 +27,33 @@ public class TaskManager<T extends Runnable> {
 	 */
 	private Map<T, Future<?>> task_future_table;
 
-	public TaskManager() {
-		// prepare internal data structures
-		added_tasks_list = new LinkedList<T>();
-		task_future_table = new HashMap<T, Future<?>>();
-		task_executor = Executors.newSingleThreadExecutor();
-	}
-
 	/**
-	 * Add a new task to the list of managed task
-	 * 
-	 * @param task
-	 *            Task to add for management
+	 * Construct a manager with a default single thread executor obtained from
+	 * {@link Executors#newSingleThreadExecutor()}
 	 */
-	public void add(T task) {
-		synchronized (added_tasks_list) {
-			if (task != null && added_tasks_list.contains(task))
-				added_tasks_list.add(task);
-		}
+	public TaskManager() {
+		this(Executors.newSingleThreadExecutor());
 	}
 
 	/**
-	 * Cancel a task; note that this DOES NOT remove the task under supervision of this task manager
+	 * Construct a manager with a specified {@link ExecutorService} to execute tasks
+	 * 
+	 * @param task_executor
+	 */
+	public TaskManager(ExecutorService task_executor) {
+		this.task_executor = task_executor;
+		this.task_future_table = new HashMap<T, Future<?>>();
+	}
+
+	/**
+	 * Cancel a task if it is executing
+	 * 
+	 * NOTE: this only works if the task is previously submitted via {@link TaskManager#submit} method of this object
 	 * 
 	 * @param task
 	 *            Task to cancel
 	 */
 	public void cancel(T task) {
-		if (task == null)
-			return;
-		// cancel the task if it is executing
 		synchronized (task_future_table) {
 			Future<?> task_future = task_future_table.remove(task);
 			if (task_future != null)
@@ -71,29 +62,27 @@ public class TaskManager<T extends Runnable> {
 	}
 
 	/**
-	 * Get the list of tasks under management of this instance
+	 * Get the number of unfinished tasks that were previously submitted
 	 * 
-	 * @return The list of task added (without removed tasks)
+	 * @return
 	 */
-	public List<T> getTaskList() {
-		return added_tasks_list;
-	}
-
-	/**
-	 * Remove a task if it is managed by this task manager
-	 * 
-	 * @param task
-	 *            Task to be removed
-	 */
-	public void remove(T task) {
-		synchronized (added_tasks_list) {
-			added_tasks_list.remove(task);
+	public int getUnfinishedTaskCount() {
+		synchronized (task_future_table) {
+			// clean up the table
+			Set<T> submitted_tasks = task_future_table.keySet();
+			for (T task : submitted_tasks) {
+				Future<?> task_future = task_future_table.get(task);
+				if (task_future == null)
+					continue;
+				if (task_future.isDone() || task_future.isCancelled())
+					task_future_table.remove(task);
+			}
 		}
-		cancel(task);
+		return task_future_table.size();
 	}
 
 	/**
-	 * Submit a (SHOULD BE pending) task for execution
+	 * Submit a (SHOULD be pending) task for execution
 	 * 
 	 * @param task
 	 *            Task to execute or re-execute

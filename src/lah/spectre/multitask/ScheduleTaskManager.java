@@ -56,22 +56,22 @@ public class ScheduleTaskManager<T extends Task> extends TaskManager<T> {
 		new Timer().scheduleAtFixedRate(scheduling_task, 0, schedule_period);
 	}
 
-	public void add(T task, boolean schedule) {
-		super.add(task);
-		if (schedule) // enqueue task for scheduling if requested
-			schedule(task);
-	}
-
 	@Override
 	public void cancel(T task) {
 		super.cancel(task);
-		// remove the task if it is pending for execution
 		synchronized (pending_tasks_queue) {
+			// remove the task if it is pending for execution
 			pending_tasks_queue.remove(task);
 		}
 	}
 
-	public void schedule(T task) {
+	/**
+	 * Enqueue a task for scheduling
+	 * 
+	 * @param task
+	 *            Task to enqueue, periodically check and submit once it becomes executable
+	 */
+	public void enqueue(T task) {
 		synchronized (pending_tasks_queue) {
 			if (!pending_tasks_queue.contains(task))
 				pending_tasks_queue.add(task);
