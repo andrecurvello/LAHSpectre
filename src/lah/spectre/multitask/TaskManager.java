@@ -1,8 +1,8 @@
 package lah.spectre.multitask;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -69,13 +69,15 @@ public class TaskManager<T extends Runnable> {
 	public int getUnfinishedTaskCount() {
 		synchronized (task_future_table) {
 			// clean up the table
-			Set<T> submitted_tasks = task_future_table.keySet();
-			for (T task : submitted_tasks) {
+			Iterator<T> submitted_tasks_iterator = task_future_table.keySet().iterator();
+			T task;
+			while (submitted_tasks_iterator.hasNext()) {
+				task = submitted_tasks_iterator.next();
 				Future<?> task_future = task_future_table.get(task);
 				if (task_future == null)
 					continue;
 				if (task_future.isDone() || task_future.isCancelled())
-					task_future_table.remove(task);
+					submitted_tasks_iterator.remove();
 			}
 		}
 		return task_future_table.size();
