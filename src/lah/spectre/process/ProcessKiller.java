@@ -21,6 +21,7 @@ class ProcessKiller extends TimerTask {
 	private Process process;
 
 	public ProcessKiller(Process process) {
+		assert process != null;
 		this.process = process;
 		this.is_timeout = false;
 	}
@@ -31,14 +32,19 @@ class ProcessKiller extends TimerTask {
 
 	@Override
 	public void run() {
-		// Set time out flag
-		is_timeout = true;
-		// Destroy the running process; assuming that once the process is destroyed, its standard output reaches EOF
-		if (process != null)
+		try {
+			// Try to obtain the exit value first, if there is no IllegalThreadStateException raised, then the process
+			// already gracefully terminates. In that case, there is actually no timeout.
+			process.exitValue();
+		} catch (Exception e) {
+			// Set time out flag
+			is_timeout = true;
+			// Destroy the running process; assuming that once the process is destroyed, its standard output reaches EOF
 			process.destroy();
-		// Note: must not close streams here (after destruction) because we might still be processing the standard
-		// output; invoking destroy is sufficient because this makes the stdout stream reach EOF so that invocation of
-		// Streams.processStream in TimeShell.fork halts naturally.
+			// Note: must not close streams here (after destruction) because we might still be processing the standard
+			// output; invoking destroy is sufficient because this makes the stdout stream reach EOF so that invocation
+			// of Streams.processStream in TimeShell.fork halts naturally.
+		}
 	}
 
 }

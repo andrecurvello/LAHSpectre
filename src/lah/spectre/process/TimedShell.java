@@ -183,10 +183,7 @@ public class TimedShell {
 
 		// 4. Return exit value
 		if (process_killer != null && process_killer.isTimeOut())
-			// Time out occurs, raise exception after finally-clause is done!
-			// TODO Logically, isTimeOut might be true even if the process does not exceed time limit! This happens when
-			// the process exits gracefully; but right after that, the cancel is run. This case is rare (i.e. the
-			// process must take exactly the "timeout" amount to execute) but feasible.
+			// Time out occurs, raise exception
 			throw new TimeoutException("Timeout while executing " + command[0]);
 		else
 			return process.exitValue();
