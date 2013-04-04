@@ -4,6 +4,8 @@ import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Extension of {@link TaskManager} which periodically check if the task is executable and submit them
@@ -45,11 +47,16 @@ public class ScheduleTaskManager<T extends Task> extends TaskManager<T> {
 	private ConcurrentLinkedQueue<T> pending_tasks_queue;
 
 	/**
-	 * Time between two scheduling, set to 500 miliseconds (half a second)
+	 * Time between two scheduling, default to 2000 miliseconds (two seconds)
 	 */
-	private int schedule_period = 500;
+	private int schedule_period = 2000;
 
 	public ScheduleTaskManager() {
+		this(Executors.newSingleThreadExecutor());
+	}
+
+	public ScheduleTaskManager(ExecutorService task_executor) {
+		super(task_executor);
 		pending_tasks_queue = new ConcurrentLinkedQueue<T>();
 		// periodically submit executable tasks
 		TimerTask scheduling_task = new TaskScheduler();

@@ -41,6 +41,7 @@ public class TaskManager<T extends Runnable> {
 	 * @param task_executor
 	 */
 	public TaskManager(ExecutorService task_executor) {
+		assert task_executor != null;
 		this.task_executor = task_executor;
 		this.task_future_table = new HashMap<T, Future<?>>();
 	}
