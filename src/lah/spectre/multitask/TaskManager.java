@@ -1,8 +1,10 @@
 package lah.spectre.multitask;
 
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -65,9 +67,13 @@ public class TaskManager<T extends Runnable> {
 	/**
 	 * Get the number of unfinished tasks that were previously submitted
 	 * 
-	 * @return
+	 * @param finished_tasks
+	 *            An allocated set to collect all the newly finished tasks. Note that caller is expected to make sure
+	 *            that there will be no concurrent modification; otherwise, {@link ConcurrentModificationException}
+	 *            might be fired! If this parameter is {@code null} then it will be ignored.
+	 * @return The number of unfinished tasks that has been submitted to this task manager
 	 */
-	public int getUnfinishedTaskCount() {
+	public int getUnfinishedTaskCount(Set<T> finished_tasks) {
 		synchronized (task_future_table) {
 			// clean up the table
 			Iterator<T> submitted_tasks_iterator = task_future_table.keySet().iterator();
@@ -77,8 +83,11 @@ public class TaskManager<T extends Runnable> {
 				Future<?> task_future = task_future_table.get(task);
 				if (task_future == null)
 					continue;
-				if (task_future.isDone() || task_future.isCancelled())
+				if (task_future.isDone() || task_future.isCancelled()) {
 					submitted_tasks_iterator.remove();
+					if (finished_tasks != null)
+						finished_tasks.add(task);
+				}
 			}
 		}
 		return task_future_table.size();
