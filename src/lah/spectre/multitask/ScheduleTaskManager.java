@@ -85,4 +85,15 @@ public class ScheduleTaskManager<T extends Task> extends TaskManager<T> {
 		}
 	}
 
+	/**
+	 * Get the number of pending tasks
+	 * 
+	 * @return Number of pending tasks
+	 */
+	public int getPendingTasksCount() {
+		synchronized (pending_tasks_queue) {
+			return pending_tasks_queue.size();
+		}
+	}
+
 }

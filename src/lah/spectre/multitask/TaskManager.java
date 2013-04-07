@@ -83,14 +83,14 @@ public class TaskManager<T extends Runnable> {
 				Future<?> task_future = task_future_table.get(task);
 				if (task_future == null)
 					continue;
-				if (task_future.isDone() || task_future.isCancelled()) {
+				if (task_future.isDone()) {
 					submitted_tasks_iterator.remove();
 					if (finished_tasks != null)
 						finished_tasks.add(task);
 				}
 			}
+			return task_future_table.size();
 		}
-		return task_future_table.size();
 	}
 
 	/**
