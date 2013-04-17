@@ -6,15 +6,18 @@ A collection of useful and convenient Java utilities and interfaces
 Aim
 ---
 
-The aim of this project is to provide a collection of convenient Java utilities to support other projects (namely, a spectre) including
+As the name suggest, the aim of this project is to provide a collection of convenient Java utilities to support other projects including
 
-*  TimedShell: invoke external programs with time-out
+ *  Stream processing: close stream ignoring Exception, read stream until end, direct InputStream to OutputStream, dump text string to file, etc.
+ 
+ *  TimedShell: invoke native programs with time-out, environment, etc.
 
-*  File downloading (SpectreGet): a reincarnation of wget and jDownloader
-   -   static downloading method: blocking until completion, with progress notification
-       and callback on completion/error.
-   -   asynchronous downloading method: run in background thread, with progress notification
-       and callback on completion/error.
-       
-*  Archive file extraction (Digger):
-   -   wrapper methods to extract a file archive or compressed archive
+ *  SpectreGet: (blocking) download file [inspired by wget]
+ 
+ *  Task manager: simple management of task submission, periodic scheduling
+ 
+ *  File name: various information extraction method to deal with paths and file addresses
+ 
+ *  Command line argument parsing
+ 
+ *  Collections: printing and conversion of Java collections objects (set, map, list, etc.)
