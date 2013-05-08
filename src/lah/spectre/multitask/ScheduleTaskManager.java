@@ -1,6 +1,5 @@
 package lah.spectre.multitask;
 
-import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -8,14 +7,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Extension of {@link TaskManager} which periodically check if the task is executable and submit them
+ * Extension of {@link TaskManager} which periodically check if the task is executable and submit them. Unlike
+ * {@link ListeningTaskManager}, this manager requires no notification effort from the task object's side and thus is
+ * safer to use (for there is no fear of non-dispatching of executable tasks).
  * 
  * @author L.A.H.
  * 
  * @param T
  *            Generic type for tasks
  */
-public class ScheduleTaskManager<T extends Task> extends TaskManager<T> {
+public class ScheduleTaskManager<T extends Task> extends ListeningTaskManager<T> {
 
 	/**
 	 * {@link TimerTask} to periodically check tasks' status and schedule (i.e. submit) pending executable tasks
@@ -27,24 +28,10 @@ public class ScheduleTaskManager<T extends Task> extends TaskManager<T> {
 
 		@Override
 		public void run() {
-			synchronized (pending_tasks_queue) {
-				Iterator<T> pending_task_iterator = pending_tasks_queue.iterator();
-				while (pending_task_iterator.hasNext()) {
-					T pending_task = pending_task_iterator.next();
-					if (pending_task.isExecutable()) {
-						pending_task_iterator.remove();
-						submit(pending_task);
-					}
-				}
-			}
+			dispatchExecutableTasks();
 		}
 
 	}
-
-	/**
-	 * List of tasks waiting to be scheduled/submitted for execution
-	 */
-	private ConcurrentLinkedQueue<T> pending_tasks_queue;
 
 	/**
 	 * Time between two scheduling, default to 2000 miliseconds (two seconds)
@@ -64,36 +51,8 @@ public class ScheduleTaskManager<T extends Task> extends TaskManager<T> {
 	}
 
 	@Override
-	public void cancel(T task) {
-		super.cancel(task);
-		synchronized (pending_tasks_queue) {
-			// remove the task if it is pending for execution
-			pending_tasks_queue.remove(task);
-		}
-	}
-
-	/**
-	 * Enqueue a task for scheduling
-	 * 
-	 * @param task
-	 *            Task to enqueue, periodically check and submit once it becomes executable
-	 */
-	public void enqueue(T task) {
-		synchronized (pending_tasks_queue) {
-			if (!pending_tasks_queue.contains(task))
-				pending_tasks_queue.add(task);
-		}
-	}
-
-	/**
-	 * Get the number of pending tasks
-	 * 
-	 * @return Number of pending tasks
-	 */
-	public int getPendingTasksCount() {
-		synchronized (pending_tasks_queue) {
-			return pending_tasks_queue.size();
-		}
+	public void onStateChanged(T task) {
+		// Overriding the superclass method to disable dispatching after state update
 	}
 
 }
