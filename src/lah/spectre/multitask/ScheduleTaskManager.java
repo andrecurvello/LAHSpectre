@@ -2,7 +2,6 @@ package lah.spectre.multitask;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,7 +43,6 @@ public class ScheduleTaskManager<T extends Task> extends ListeningTaskManager<T>
 
 	public ScheduleTaskManager(ExecutorService task_executor) {
 		super(task_executor);
-		pending_tasks_queue = new ConcurrentLinkedQueue<T>();
 		// periodically submit executable tasks
 		TimerTask scheduling_task = new TaskScheduler();
 		new Timer().scheduleAtFixedRate(scheduling_task, 0, schedule_period);

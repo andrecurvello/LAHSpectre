@@ -19,7 +19,7 @@ public class ListeningTaskManager<T extends Task> extends TaskManager<T> impleme
 	/**
 	 * List of tasks waiting to be scheduled/submitted for execution
 	 */
-	protected ConcurrentLinkedQueue<T> pending_tasks_queue;
+	protected final ConcurrentLinkedQueue<T> pending_tasks_queue;
 
 	public ListeningTaskManager() {
 		this(Executors.newSingleThreadExecutor());

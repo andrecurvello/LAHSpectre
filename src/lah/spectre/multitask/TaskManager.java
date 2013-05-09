@@ -27,7 +27,7 @@ public class TaskManager<T extends Runnable> {
 	/**
 	 * Table mapping each task to its {@link Future} for cancellation
 	 */
-	private Map<T, Future<?>> task_future_table;
+	private final Map<T, Future<?>> task_future_table;
 
 	/**
 	 * Construct a manager with a default single thread executor obtained from
